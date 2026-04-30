@@ -1,13 +1,6 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".",
-  "framework": "vanilla",
-  "regions": ["arn1"],
-  "env": {
-    "BACKEND_API_URL": "@backend_api_url",
-    "REACT_APP_EONTYRE_API_KEY": "@eontyre_api_key",
-    "REACT_APP_DEFAULT_LANG": "sv"
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -25,8 +18,8 @@
       "destination": "/$1"
     },
     {
-      "source": "/api/(.*)",
-      "destination": "https://api.eontyre.com/$1"
+      "source": "^/(?!.*\\.)",
+      "destination": "/index.html"
     }
   ]
 }
