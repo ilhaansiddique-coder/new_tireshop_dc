@@ -125,10 +125,13 @@ app.get("/api/products", async (req, res) => {
       // Plate-based search
       const cleanPlate = plate.replace(/[^A-Z0-9]/g, "").toUpperCase();
       console.log(`[Products] Searching by plate: ${cleanPlate}`);
+      console.log(`[Products] API_KEY configured: ${API_KEY ? "✅ Yes (length: " + API_KEY.length + ")" : "❌ No"}`);
+      console.log(`[Products] EONTYRE_API_URL: ${EONTYRE_API_URL}`);
 
       try {
         const carUrl = `${EONTYRE_API_URL}/api/webshop/cars/${encodeURIComponent(cleanPlate)}`;
-        console.log(`[Products] Calling EonTyre API: ${carUrl}`);
+        console.log(`[Products] Full request URL: ${carUrl}`);
+        console.log(`[Products] Request headers: Accept=application/json, Api-Key=${API_KEY ? API_KEY.substring(0, 5) + "..." : "MISSING"}`);
 
         const carResponse = await fetch(carUrl, {
           method: "GET",
@@ -138,12 +141,12 @@ app.get("/api/products", async (req, res) => {
           }
         });
 
-        console.log(`[Products] EonTyre response status: ${carResponse.status}`);
+        console.log(`[Products] EonTyre response status: ${carResponse.status} ${carResponse.statusText}`);
 
         if (!carResponse.ok) {
           const errorText = await carResponse.text();
-          console.log(`[Products] EonTyre error response: ${errorText}`);
-          throw new Error(`Car lookup failed: ${carResponse.status} - ${errorText}`);
+          console.log(`[Products] EonTyre error response (first 500 chars): ${errorText.substring(0, 500)}`);
+          throw new Error(`Car lookup failed: ${carResponse.status} - ${errorText.substring(0, 100)}`);
         }
 
         const carData = await carResponse.json();
