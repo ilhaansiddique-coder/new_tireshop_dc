@@ -100,7 +100,14 @@ export default async function handler(req, res) {
 
     if (plate) {
       // Plate-based search: lookup car, extract tire size, search products
-      const carData = await lookupCarByPlate(plate);
+      let carData;
+      try {
+        carData = await lookupCarByPlate(plate);
+      } catch (err) {
+        return res.status(404).json({
+          error: `Car registration "${plate}" not found in EonTyre database`
+        });
+      }
       const car = normalizeCarDataResponse(carData);
 
       if (!car.tireWidth || !car.tireAspectRatio || !car.tireDiameter) {
