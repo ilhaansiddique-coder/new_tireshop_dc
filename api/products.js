@@ -1,0 +1,150 @@
+// Proxy to EonTyre products API with number plate support
+const EONTYRE_API = process.env.EONTYRE_API_URL || 'https://p511.eontyre.com';
+const API_KEY = process.env.EONTYRE_API_KEY;
+
+function normalizeCarDataResponse(data) {
+  if (!data) return null;
+
+  const car = data.car || data;
+  if (!car.vehicle_registration_data) return car;
+
+  const vrd = car.vehicle_registration_data;
+  return {
+    make: vrd.make,
+    model: vrd.model,
+    year: vrd.year,
+    tireDimension: vrd.tire_dimension,
+    tireWidth: vrd.tire_width,
+    tireAspectRatio: vrd.tire_aspect_ratio,
+    tireDiameter: vrd.tire_diameter,
+    tireSeasonType: vrd.tire_season_type,
+    ...car
+  };
+}
+
+function normalizeProductsResponse(data) {
+  let products = [];
+
+  if (Array.isArray(data)) {
+    products = data;
+  } else if (data.data && Array.isArray(data.data)) {
+    products = data.data;
+  } else if (data.products && Array.isArray(data.products)) {
+    products = data.products;
+  }
+
+  return products.map(p => ({
+    id: p.id,
+    name: p.name,
+    brand: p.brand,
+    dimension: p.dimension,
+    width: p.width,
+    aspectRatio: p.aspect_ratio || p.aspectRatio,
+    diameter: p.diameter,
+    seasonType: p.season_type || p.seasonType,
+    seasonTypeId: p.type_id || p.typeId,
+    price: p.price,
+    priceFormatted: new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' }).format((p.price || 0) / 100),
+    stock: p.stock || p.quantity_in_stock || 0,
+    image: p.image_url || p.image,
+    supplier_id: p.supplier_id,
+    location_id: p.location_id,
+    sku: p.sku
+  }));
+}
+
+async function lookupCarByPlate(plate) {
+  const cleanPlate = (plate || '').replace(/[^A-Z0-9]/g, '').toUpperCase();
+  if (!cleanPlate) throw new Error('Invalid plate');
+
+  const res = await fetch(`${EONTYRE_API}/api/webshop/cars/${cleanPlate}`, {
+    method: 'POST',
+    headers: { 'Api-Key': API_KEY }
+  });
+
+  if (!res.ok) throw new Error(`Car lookup failed: ${res.status}`);
+  return res.json();
+}
+
+async function searchProductsBySize(width, ratio, diameter, typeId = null, brandId = null) {
+  const params = new URLSearchParams({
+    version: '2',
+    width,
+    aspectRatio: ratio,
+    diameter
+  });
+
+  if (typeId) params.append('typeId', typeId);
+  if (brandId) params.append('brand', brandId);
+
+  const res = await fetch(`${EONTYRE_API}/webshop/products?${params}`, {
+    headers: { 'Api-Key': API_KEY }
+  });
+
+  if (!res.ok) throw new Error(`Product search failed: ${res.status}`);
+  return res.json();
+}
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  try {
+    const { plate, width, ratio, diameter, type, brand } = req.query;
+
+    if (plate) {
+      // Plate-based search: lookup car, extract tire size, search products
+      const carData = await lookupCarByPlate(plate);
+      const car = normalizeCarDataResponse(carData);
+
+      if (!car.tireWidth || !car.tireAspectRatio || !car.tireDiameter) {
+        return res.status(400).json({ error: 'Car tire dimensions not found' });
+      }
+
+      const products = await searchProductsBySize(
+        car.tireWidth,
+        car.tireAspectRatio,
+        car.tireDiameter,
+        type ? parseInt(type) : null,
+        brand
+      );
+
+      const normalized = normalizeProductsResponse(products);
+
+      return res.json({
+        car,
+        products: normalized,
+        tiresFound: normalized.length
+      });
+    } else if (width && ratio && diameter) {
+      // Direct size search
+      const products = await searchProductsBySize(
+        width,
+        ratio,
+        diameter,
+        type ? parseInt(type) : null,
+        brand
+      );
+
+      const normalized = normalizeProductsResponse(products);
+
+      return res.json({
+        products: normalized,
+        tiresFound: normalized.length
+      });
+    } else {
+      return res.status(400).json({
+        error: 'Provide either plate OR (width, ratio, diameter)'
+      });
+    }
+  } catch (err) {
+    console.error('Product search error:', err);
+    res.status(500).json({ error: err.message });
+  }
+}

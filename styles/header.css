@@ -200,10 +200,10 @@
 }
 .nav-item:hover .caret { transform: rotate(180deg); }
 
-/* mega-menu hidden behind hover - simple */
+/* mega-menu dropdown - improved hover behavior */
 .nav-mega {
   position: absolute;
-  top: calc(100% + 8px);
+  top: 100%;
   left: 0;
   min-width: 280px;
   background: var(--bg);
@@ -211,15 +211,29 @@
   border-radius: var(--r-md);
   box-shadow: var(--shadow-3);
   padding: 8px;
+  margin-top: 8px;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-4px);
-  transition: opacity var(--t-fast), transform var(--t-fast);
+  transition: opacity 200ms ease-out, transform 200ms ease-out, pointer-events 0ms 200ms;
   z-index: 110;
 }
 .nav-item:hover > .nav-mega,
 .nav-item:focus-within > .nav-mega {
-  opacity: 1; pointer-events: auto; transform: none;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+/* Extend hover area to include gap between nav-item and dropdown */
+.nav-item::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 8px;
+  pointer-events: auto;
 }
 .nav-mega a {
   display: flex;
@@ -230,8 +244,15 @@
   font-size: 14px;
   color: var(--ink-2);
   transition: background var(--t-fast), color var(--t-fast);
+  text-decoration: none;
 }
 .nav-mega a:hover { background: var(--bg-alt); color: var(--ink); }
+/* Keep dropdown visible when hovering over items */
+.nav-item:has(.nav-mega a:hover) > .nav-mega {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
 .nav-mega a span.tag {
   font-size: 11px;
   padding: 2px 8px;

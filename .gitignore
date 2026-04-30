@@ -54,3 +54,6 @@ frontendClaude/.next/
 .git/
 
 # NOTHING ELSE SHOULD BE IGNORED - COMMIT YOUR PROJECT FILES!
+
+.vercel
+.env*.local

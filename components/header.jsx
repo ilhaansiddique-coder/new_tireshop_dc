@@ -107,9 +107,15 @@ const NAV_SV = [
     { name: "Stålfälg" }, { name: "Aluminiumfälg" }, { name: "DC Wheels", tag: "Nytt" }
   ]},
   { label: "Kompletta hjul" },
-  { label: "Däckhotell", href: "dackhotell.html" },
-  { label: "Hjulinställning", href: "tjanst-hjulinstallning.html" },
-  { label: "Fälgrenovering" },
+  { label: "Tjänster", mega: [
+    { name: "Däckskifte", href: "tjanst-dackskifte.html" },
+    { name: "Balansering", href: "tjanst-balansering.html" },
+    { name: "Punktering", href: "tjanst-punktering.html" },
+    { name: "Lagning", href: "tjanst-lagning.html" },
+    { name: "Hjulinställning", href: "tjanst-hjulinstallning.html" },
+    { name: "Fälgrenovering", href: "tjanst-falgservice.html" },
+    { name: "Däckhotell", href: "dackhotell.html" }
+  ]},
   { label: "DC Wheels" }
 ];
 
@@ -123,9 +129,15 @@ const NAV_EN = [
     { name: "Steel Rims" }, { name: "Aluminum Rims" }, { name: "DC Wheels", tag: "New" }
   ]},
   { label: "Complete Wheels" },
-  { label: "Tyre Hotel", href: "dackhotell.html" },
-  { label: "Wheel Alignment", href: "tjanst-hjulinstallning.html" },
-  { label: "Rim Service" },
+  { label: "Services", mega: [
+    { name: "Tyre Change", href: "tjanst-dackskifte.html" },
+    { name: "Balancing", href: "tjanst-balansering.html" },
+    { name: "Puncture Repair", href: "tjanst-punktering.html" },
+    { name: "Repair", href: "tjanst-lagning.html" },
+    { name: "Wheel Alignment", href: "tjanst-hjulinstallning.html" },
+    { name: "Rim Service", href: "tjanst-falgservice.html" },
+    { name: "Tyre Hotel", href: "dackhotell.html" }
+  ]},
   { label: "DC Wheels" }
 ];
 
@@ -169,7 +181,7 @@ function Header({ activeIndex = 0 }) {
               {item.mega && (
                 <div className="nav-mega">
                   {item.mega.map(m => (
-                    <a key={m.name} href="#">
+                    <a key={m.name} href={m.href || "#"}>
                       <span>{m.name}</span>
                       {m.tag && <span className="tag">{m.tag}</span>}
                     </a>

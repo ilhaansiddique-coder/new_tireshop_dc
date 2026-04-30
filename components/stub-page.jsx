@@ -1,11 +1,14 @@
-/* global React, ReactDOM, DCHeader, DCTopBar, DCSections, DCIcons, DCRegSearch, DCTire */
+/* global React, ReactDOM, DCHeader, DCTopBar, DCSections, DCIcons, DCRegSearch, DCTire, DCBookingModal */
 const { Footer, CTAStrip } = DCSections;
 const { IconCheck, IconArrow, IconShield, IconClock, IconSpark } = DCIcons;
+const { useState } = React;
 
 window.DCStub = function StubPage({
   title, titleEm, subtitle, lede, price, time, includes,
   features, navIndex
 }) {
+  const [modalOpen, setModalOpen] = useState(false);
+
   React.useEffect(() => {
     const els = document.querySelectorAll(".reveal:not(.in)");
     els.forEach(el => {
@@ -13,6 +16,7 @@ window.DCStub = function StubPage({
       if (r.top < window.innerHeight) el.classList.add("in");
     });
   }, []);
+
   return (
     <>
       <DCTopBar/>
@@ -31,7 +35,13 @@ window.DCStub = function StubPage({
                 <h1 style={{marginTop:14}}>{title} <em>{titleEm}</em>.</h1>
                 <p className="stub-lede">{lede}</p>
                 <div style={{display:"flex", gap:12, flexWrap:"wrap"}}>
-                  <a href="#" className="btn btn-accent">Boka tid <span className="arrow"><IconArrow size={16}/></span></a>
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    className="btn btn-accent"
+                    style={{border:'none',background:'inherit',cursor:'pointer',padding:'inherit'}}
+                  >
+                    Boka tid <span className="arrow"><IconArrow size={16}/></span>
+                  </button>
                   <a href="index.html" className="btn btn-ghost">Andra tjänster</a>
                 </div>
               </div>
@@ -42,7 +52,13 @@ window.DCStub = function StubPage({
                 <ul>
                   {includes.map((x,i) => <li key={i}><IconCheck size={18}/> {x}</li>)}
                 </ul>
-                <a href="#" className="btn btn-accent" style={{width:"100%", justifyContent:"center"}}>Boka nu</a>
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="btn btn-accent"
+                  style={{width:"100%", justifyContent:"center",border:'none',background:'inherit',cursor:'pointer',padding:'inherit'}}
+                >
+                  Boka nu
+                </button>
               </div>
             </div>
             <div className="stub-features">
@@ -58,6 +74,11 @@ window.DCStub = function StubPage({
         </section>
         <CTAStrip/>
       </main>
+      <DCBookingModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        serviceTitle={title}
+      />
       <Footer/>
     </>
   );

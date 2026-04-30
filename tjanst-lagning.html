@@ -13,21 +13,70 @@
 <link rel="stylesheet" href="styles/subpage.css?v=12"/>
 </head>
 <body>
+<div id="topbar"></div>
+<div id="header"></div>
 <div id="root"></div>
-<script>window.__STUB_DATA__ = {"file":"tjanst-lagning.html","title":"Lagning","titleEm":"som håller livet ut","subtitle":"05 / Lagning","lede":"Ångtätning från insidan eller plugg utifrån. Vi väljer rätt metod efter skadans karaktär — inte efter vad som går snabbast.","price":"395 kr","time":"Tar ca 30 min","includes":["Demontering av däck från fälg","Inspektion av insidan","Ångtätning med vulkaniserad lapp","Återmontering och balansering"],"features":[{"title":"Ångtätning","body":"Vår standardmetod när skadan tillåter — ger den starkaste och mest hållbara lagningen."},{"title":"Plugg när det räcker","body":"Är hålet litet och rakt? En plugg utifrån är snabbare och billigare."},{"title":"Garanti","body":"Vi garanterar lagningen så länge däcket är kvar i bruk."}]};</script>
+<script>
+  window.__SERVICE_DATA__ = {
+    file: 'tjanst-lagning.html',
+    title: 'Lagning',
+    titleEm: 'som håller livet ut',
+    subtitle: '05 / Lagning',
+    lede: 'Ångtätning från insidan eller plugg utifrån. Vi väljer rätt metod efter skadans karaktär — inte efter vad som går snabbast.',
+    price: '395 kr',
+    time: 'Tar ca 30 min',
+    includes: [
+      'Demontering av däck från fälg',
+      'Inspektion av insidan',
+      'Ångtätning med vulkaniserad lapp',
+      'Återmontering och balansering'
+    ],
+    features: [
+      { title: 'Ångtätning', body: 'Vår standardmetod när skadan tillåter — ger den starkaste och mest hållbara lagningen.' },
+      { title: 'Plugg när det räcker', body: 'Är hålet litet och rakt? En plugg utifrån är snabbare och billigare.' },
+      { title: 'Garanti', body: 'Vi garanterar lagningen så länge däcket är kvar i bruk.' }
+    ]
+  };
+</script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <script src="lib/init-lang.js"></script>
+<script src="lib/cart-manager.js"></script>
 <script type="text/babel" src="components/icons.jsx"></script>
 <script type="text/babel" src="components/header.jsx"></script>
+<script type="text/babel" src="components/cart-drawer.jsx"></script>
 <script type="text/babel" src="components/regsearch.jsx"></script>
 <script type="text/babel" src="components/tire.jsx"></script>
 <script type="text/babel" src="components/sections.jsx"></script>
+<script type="text/babel" src="components/booking-modal.jsx"></script>
 <script type="text/babel" src="components/stub-page.jsx"></script>
+<script type="text/babel" src="pages/ServicePage.jsx"></script>
 <script type="text/babel">
-  ReactDOM.createRoot(document.getElementById("root")).render(
-    React.createElement(window.DCStub, window.__STUB_DATA__)
+  const topbarRoot = document.getElementById('topbar');
+  if (topbarRoot) {
+    ReactDOM.createRoot(topbarRoot).render(<DCTopBar />);
+  }
+
+  const headerRoot = document.getElementById('header');
+  if (headerRoot) {
+    ReactDOM.createRoot(headerRoot).render(
+      <>
+        <DCHeader activeIndex={3} />
+        <div id="cart-drawer-root" style={{display: 'contents'}}></div>
+      </>
+    );
+
+    setTimeout(() => {
+      const cartRoot = document.getElementById('cart-drawer-root');
+      if (cartRoot) {
+        ReactDOM.createRoot(cartRoot).render(<DCCartDrawer/>);
+      }
+    }, 100);
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    React.createElement(window.ServicePage, { stubData: window.__SERVICE_DATA__ })
   );
 </script>
 </body>

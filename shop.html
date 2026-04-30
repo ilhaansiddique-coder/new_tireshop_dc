@@ -10,59 +10,15 @@
 <link rel="stylesheet" href="styles/tokens.css?v=12"/>
 <link rel="stylesheet" href="styles/header.css?v=12"/>
 <style>
-  body {
-    background: #f9fafb;
-  }
-
-  .shop-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
-
-  .shop-header {
-    margin-bottom: 40px;
-  }
-
-  .shop-header h1 {
-    margin: 0 0 8px 0;
-    font-size: 32px;
-    font-weight: 700;
-  }
-
-  .shop-header p {
-    margin: 0;
-    font-size: 16px;
-    color: #6b7280;
-  }
-
-  .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 24px;
-  }
-
-  .loading {
-    text-align: center;
-    padding: 60px 20px;
-    font-size: 16px;
-    color: #6b7280;
-  }
-
-  .error {
-    background: #fef2f2;
-    border: 1px solid #fee2e2;
-    padding: 20px;
-    border-radius: 8px;
-    color: #991b1b;
-    margin: 20px 0;
-  }
-
-  @media (max-width: 768px) {
-    .products-grid {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-  }
+  body { background: #f9fafb; }
+  .shop-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+  .shop-header { margin-bottom: 40px; }
+  .shop-header h1 { margin: 0 0 8px 0; font-size: 32px; font-weight: 700; }
+  .shop-header p { margin: 0; font-size: 16px; color: #6b7280; }
+  .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 24px; }
+  .loading { text-align: center; padding: 60px 20px; font-size: 16px; color: #6b7280; }
+  .error { background: #fef2f2; border: 1px solid #fee2e2; padding: 20px; border-radius: 8px; color: #991b1b; margin: 20px 0; }
+  @media (max-width: 768px) { .products-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
 </style>
 </head>
 <body>
@@ -79,7 +35,7 @@
 </div>
 
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYyb4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <script src="lib/init-lang.js"></script>
@@ -89,217 +45,9 @@
 <script type="text/babel" src="components/header.jsx"></script>
 <script type="text/babel" src="components/cart-drawer.jsx"></script>
 <script type="text/babel" src="components/product-card.jsx"></script>
+<script type="text/babel" src="pages/ShopPage.jsx"></script>
 
 <script type="text/babel">
-  const { useState, useEffect } = React;
-
-  const translations = {
-    sv: {
-      title: 'Shop',
-      desc: 'Bläddra och lägg produkter i varukorgen',
-      loading: 'Laddar produkter...',
-      error: 'Det gick inte att ladda produkter. Försök igen senare.'
-    },
-    en: {
-      title: 'Shop',
-      desc: 'Browse and add products to your cart',
-      loading: 'Loading products...',
-      error: 'Failed to load products. Please try again later.'
-    }
-  };
-
-  function ShopPage() {
-    const [lang, setLang] = useState(window.DC_LANG?.current || 'sv');
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-      const handleLanguageChange = () => {
-        setLang(window.DC_LANG?.current || 'sv');
-      };
-
-      document.addEventListener('languagechange', handleLanguageChange);
-      window.addEventListener('dc-language-changed', handleLanguageChange);
-
-      return () => {
-        document.removeEventListener('languagechange', handleLanguageChange);
-        window.removeEventListener('dc-language-changed', handleLanguageChange);
-      };
-    }, []);
-
-    useEffect(() => {
-      const loadProducts = async () => {
-        try {
-          setLoading(true);
-          setError(null);
-
-          // Example: Fetch products from EONTYRE API
-          // Replace with actual API endpoint
-          const response = await fetch(
-            'http://127.0.0.1:4000/api/v2/products/export/tyres?minQuantityInStock=1'
-          );
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch products');
-          }
-
-          const data = await response.json();
-
-          if (data.data && Array.isArray(data.data)) {
-            // Take first 12 products for demo
-            setProducts(data.data.slice(0, 12));
-          } else {
-            // Demo products if API fails
-            setProducts([
-              {
-                productId: 1001,
-                name: 'Michelin Pilot Sport 4',
-                description: 'Summer Performance Tyre',
-                price: 129900,
-                stock: 15,
-                image: 'https://via.placeholder.com/250?text=Michelin',
-                attrs: { dimension: '205/55R16' }
-              },
-              {
-                productId: 1002,
-                name: 'Continental ContiPremiumContact 6',
-                description: 'Premium Sedan Tyre',
-                price: 119900,
-                stock: 12,
-                image: 'https://via.placeholder.com/250?text=Continental',
-                attrs: { dimension: '195/65R15' }
-              },
-              {
-                productId: 1003,
-                name: 'Pirelli Cinturato All Season Plus',
-                description: 'All-Season Tyre',
-                price: 99900,
-                stock: 20,
-                image: 'https://via.placeholder.com/250?text=Pirelli',
-                attrs: { dimension: '205/60R16' }
-              },
-              {
-                productId: 1004,
-                name: 'Bridgestone Turanza QuietTrack',
-                description: 'Comfort & Quiet',
-                price: 109900,
-                stock: 8,
-                image: 'https://via.placeholder.com/250?text=Bridgestone',
-                attrs: { dimension: '215/60R16' }
-              },
-              {
-                productId: 1005,
-                name: 'Nokian Weatherproof',
-                description: 'All-Season Safety',
-                price: 94900,
-                stock: 25,
-                image: 'https://via.placeholder.com/250?text=Nokian',
-                attrs: { dimension: '195/60R15' }
-              },
-              {
-                productId: 1006,
-                name: 'Dunlop Sport Maxx RT2',
-                description: 'High Performance',
-                price: 139900,
-                stock: 10,
-                image: 'https://via.placeholder.com/250?text=Dunlop',
-                attrs: { dimension: '225/45R17' }
-              }
-            ]);
-          }
-        } catch (err) {
-          console.error('Error loading products:', err);
-          setError(translations[lang].error);
-
-          // Fallback demo products
-          setProducts([
-            {
-              productId: 1001,
-              name: 'Michelin Pilot Sport 4',
-              description: 'Summer Performance Tyre',
-              price: 129900,
-              stock: 15,
-              image: 'https://via.placeholder.com/250?text=Michelin',
-              attrs: { dimension: '205/55R16' }
-            },
-            {
-              productId: 1002,
-              name: 'Continental ContiPremiumContact 6',
-              description: 'Premium Sedan Tyre',
-              price: 119900,
-              stock: 12,
-              image: 'https://via.placeholder.com/250?text=Continental',
-              attrs: { dimension: '195/65R15' }
-            },
-            {
-              productId: 1003,
-              name: 'Pirelli Cinturato All Season Plus',
-              description: 'All-Season Tyre',
-              price: 99900,
-              stock: 20,
-              image: 'https://via.placeholder.com/250?text=Pirelli',
-              attrs: { dimension: '205/60R16' }
-            },
-            {
-              productId: 1004,
-              name: 'Bridgestone Turanza QuietTrack',
-              description: 'Comfort & Quiet',
-              price: 109900,
-              stock: 8,
-              image: 'https://via.placeholder.com/250?text=Bridgestone',
-              attrs: { dimension: '215/60R16' }
-            },
-            {
-              productId: 1005,
-              name: 'Nokian Weatherproof',
-              description: 'All-Season Safety',
-              price: 94900,
-              stock: 25,
-              image: 'https://via.placeholder.com/250?text=Nokian',
-              attrs: { dimension: '195/60R15' }
-            },
-            {
-              productId: 1006,
-              name: 'Dunlop Sport Maxx RT2',
-              description: 'High Performance',
-              price: 139900,
-              stock: 10,
-              image: 'https://via.placeholder.com/250?text=Dunlop',
-              attrs: { dimension: '225/45R17' }
-            }
-          ]);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      loadProducts();
-    }, []);
-
-    // Update page titles
-    useEffect(() => {
-      const t = translations[lang] || translations.sv;
-      document.getElementById('shop-title').textContent = t.title;
-      document.getElementById('shop-desc').textContent = t.desc;
-    }, [lang]);
-
-    const t = translations[lang] || translations.sv;
-
-    if (loading) {
-      return <div className="loading">{t.loading}</div>;
-    }
-
-    return (
-      <>
-        {error && <div className="error">{error}</div>}
-        {products.map(product => (
-          <DCProductCard key={product.productId} product={product} />
-        ))}
-      </>
-    );
-  }
-
   // Render topbar
   const topbarRoot = document.getElementById('topbar');
   if (topbarRoot) {
@@ -316,7 +64,6 @@
       </>
     );
 
-    // Render cart drawer after header
     setTimeout(() => {
       const cartRoot = document.getElementById('cart-drawer-root');
       if (cartRoot) {
