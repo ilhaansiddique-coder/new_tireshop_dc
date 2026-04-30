@@ -38,12 +38,18 @@ function PlateInput({ value, onChange, dark }) {
 
 function RegSearch({ label = "Hitta däck till din bil", help = "Vi visar produkter som passar din bil — gratis och utan inloggning", dark = false, onSearch }) {
   const [reg, setReg] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     console.log('🔍 Search triggered:', { reg, hasOnSearch: !!onSearch });
     if (onSearch && reg.trim()) {
       console.log('🔍 Calling onSearch with:', reg);
-      onSearch(reg);
+      setIsLoading(true);
+      try {
+        await onSearch(reg);
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       console.log('❌ Missing onSearch or empty plate');
     }
@@ -62,13 +68,23 @@ function RegSearch({ label = "Hitta däck till din bil", help = "Vi visar produk
         <button
           type="button"
           className="regsearch-cta"
+          disabled={isLoading}
           onClick={(e) => {
             console.log('🖱️ Button clicked!');
             e.preventDefault();
             handleSearch();
           }}>
-          Sök
-          <span className="arrow"><IconArrow size={16}/></span>
+          {isLoading ? (
+            <>
+              <span className="spinner"></span>
+              Söker...
+            </>
+          ) : (
+            <>
+              Sök
+              <span className="arrow"><IconArrow size={16}/></span>
+            </>
+          )}
         </button>
       </form>
       <div className="regsearch-help">

@@ -79,6 +79,8 @@ function HeroV1() {
         loading: false
       };
       window.dispatchEvent(new CustomEvent('search-updated'));
+    } finally {
+      window.dcSearchLoading = false;
     }
   };
 
