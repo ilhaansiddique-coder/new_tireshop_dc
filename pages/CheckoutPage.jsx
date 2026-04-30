@@ -454,7 +454,8 @@ function CheckoutPage() {
                     borderRadius: '6px',
                     cursor: 'pointer',
                     backgroundColor: selectedShipping?.id === option.id ? '#f0fdf4' : 'white',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    userSelect: 'none'
                   }}>
                     <input
                       type="radio"
@@ -465,7 +466,7 @@ function CheckoutPage() {
                         setSelectedShipping(option);
                         updateShippingDisplay(option);
                       }}
-                      style={{ marginRight: '12px', cursor: 'pointer' }}
+                      style={{ marginRight: '12px', cursor: 'pointer', accentColor: '#10b981' }}
                     />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: '600', color: '#1f2937' }}>

@@ -33,24 +33,29 @@ function normalizeProductsResponse(data) {
     products = data.products;
   }
 
-  return products.map(p => ({
-    id: p.id,
-    name: p.name,
-    brand: p.brand,
-    dimension: p.dimension,
-    width: p.width,
-    aspectRatio: p.aspect_ratio || p.aspectRatio,
-    diameter: p.diameter,
-    seasonType: p.season_type || p.seasonType,
-    seasonTypeId: p.type_id || p.typeId,
-    price: p.price,
-    priceFormatted: new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' }).format((p.price || 0) / 100),
-    stock: p.stock || p.quantity_in_stock || 0,
-    image: p.image_url || p.image,
-    supplier_id: p.supplier_id,
-    location_id: p.location_id,
-    sku: p.sku
-  }));
+  return products.map(p => {
+    const brandName = (p.brand || '').toUpperCase().trim();
+    const brandLogoUrl = `https://logo.clearbit.com/${brandName.toLowerCase()}.com`;
+
+    return {
+      id: p.id,
+      name: p.name,
+      brand: p.brand,
+      dimension: p.dimension,
+      width: p.width,
+      aspectRatio: p.aspect_ratio || p.aspectRatio,
+      diameter: p.diameter,
+      seasonType: p.season_type || p.seasonType,
+      seasonTypeId: p.type_id || p.typeId,
+      price: p.price,
+      priceFormatted: new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' }).format((p.price || 0) / 100),
+      stock: p.stock || p.quantity_in_stock || 0,
+      image: p.image_url || p.image || brandLogoUrl,
+      supplier_id: p.supplier_id,
+      location_id: p.location_id,
+      sku: p.sku
+    };
+  });
 }
 
 async function lookupCarByPlate(plate) {
