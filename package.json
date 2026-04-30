@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Sales Management System",
   "scripts": {
-    "dev": "http-server -c-1 -o",
+    "dev": "node server.js",
     "server": "node server.js",
     "build": "echo 'Static site ready for Vercel'",
     "start": "node server.js"
