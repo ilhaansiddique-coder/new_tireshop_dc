@@ -133,7 +133,8 @@ app.get("/api/products", async (req, res) => {
         );
 
         const products = await productsResponse.json();
-        const normalized = normalizeProducts(Array.isArray(products) ? products : products.data || []);
+        const productsList = Array.isArray(products) ? products : (products.data?.products || products.data || []);
+        const normalized = normalizeProducts(productsList);
 
         res.json({
           car: {
@@ -168,7 +169,8 @@ app.get("/api/products", async (req, res) => {
         );
 
         const products = await productsResponse.json();
-        const normalized = normalizeProducts(Array.isArray(products) ? products : products.data || []);
+        const productsList = Array.isArray(products) ? products : (products.data?.products || products.data || []);
+        const normalized = normalizeProducts(productsList);
 
         res.json({ products: normalized, tiresFound: normalized.length });
       } catch (err) {
