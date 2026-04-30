@@ -52,7 +52,16 @@ function HeroV1() {
 
     try {
       const response = await fetch(`/api/products?plate=${encodeURIComponent(plate.toUpperCase())}`);
+      console.log('📡 Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API error response:', errorText.substring(0, 500));
+        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+      }
+
       const data = await response.json();
+      console.log('📦 Raw API response:', data);
 
       window.dcSearchResults = {
         car: data.car || null,
