@@ -89,7 +89,7 @@ function TopBar() {
 
 function Brand() {
   return (
-    <a href="index.html" className="brand" aria-label="Däckcentrum">
+    <a href="/" className="brand" aria-label="Däckcentrum - Gå till startsida">
       <span className="brand-logo">
         <span className="d1">D</span>äckcentrum
       </span>
