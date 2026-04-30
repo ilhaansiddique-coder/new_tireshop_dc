@@ -25,7 +25,7 @@ window.DCStub = function StubPage({
         <section className="hero-stub">
           <div className="container">
             <div className="crumbs">
-              <a href="index.html">Hem</a><span className="sep">/</span>
+              <a href="/">Hem</a><span className="sep">/</span>
               <a href="#">Tjänster</a><span className="sep">/</span>
               <span style={{color:"var(--ink-2)"}}>{title}</span>
             </div>
@@ -42,7 +42,7 @@ window.DCStub = function StubPage({
                   >
                     Boka tid <span className="arrow"><IconArrow size={16}/></span>
                   </button>
-                  <a href="index.html" className="btn btn-ghost">Andra tjänster</a>
+                  <a href="/" className="btn btn-ghost">Andra tjänster</a>
                 </div>
               </div>
               <div className="stub-side">

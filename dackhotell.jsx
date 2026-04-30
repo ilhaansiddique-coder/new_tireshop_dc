@@ -74,7 +74,7 @@
           <section className="hotel-hero">
             <div className="container">
               <div className="crumbs">
-                <a href="index.html">Hem</a><span className="sep">/</span>
+                <a href="/">Hem</a><span className="sep">/</span>
                 <span style={{color:"#fff"}}>Däckhotell</span>
               </div>
               <div style={{marginTop: 32, display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 64, alignItems: "center"}}>
