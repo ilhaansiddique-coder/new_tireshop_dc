@@ -128,4 +128,31 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+// Wrap render in a timeout to ensure Babel finishes transpiling all components
+setTimeout(() => {
+  try {
+    console.log('🚀 Starting App render...');
+    const rootElement = document.getElementById("root");
+    console.log('Root element found:', rootElement);
+    if (!rootElement) throw new Error('Root element not found!');
+
+    // Check if components are loaded
+    console.log('Checking components:', {
+      DCHeader: typeof window.DCHeader,
+      DCTopBar: typeof window.DCTopBar,
+      DCSections: typeof window.DCSections,
+      DCHero: typeof window.DCHero,
+      useTweaks: typeof window.useTweaks,
+      TweaksPanel: typeof window.TweaksPanel
+    });
+
+    const root = ReactDOM.createRoot(rootElement);
+    console.log('✅ ReactDOM root created');
+
+    root.render(<App/>);
+    console.log('✅ App rendered successfully');
+  } catch (error) {
+    console.error('❌ Failed to render App:', error);
+    document.body.innerHTML = '<div style="color:red; padding:20px; font-family:monospace;"><h2>App Error</h2><pre>' + error.message + '</pre></div>';
+  }
+}, 2000); // Increased timeout to 2 seconds to allow Babel to transpile all components
