@@ -489,6 +489,38 @@ function CheckoutPage() {
               {lang === 'sv' ? '🚚 Hämtar frakstalternativ...' : '🚚 Loading shipping options...'}
             </div>
           )}
+
+          {!shippingLoading && shippingOptions.length === 0 && (
+            <div style={{
+              marginTop: '20px',
+              padding: '16px',
+              background: '#fef3c7',
+              border: '1px solid #fcd34d',
+              borderRadius: '6px',
+              color: '#92400e',
+              fontSize: '14px'
+            }}>
+              {lang === 'sv'
+                ? '⚠️ Fyll i ett giltigt postnummer för att se frakstalternativ'
+                : '⚠️ Enter a valid postal code to see shipping options'}
+            </div>
+          )}
+
+          {shippingOptions.length > 0 && !selectedShipping && (
+            <div style={{
+              marginTop: '20px',
+              padding: '16px',
+              background: '#fee2e2',
+              border: '1px solid #fca5a5',
+              borderRadius: '6px',
+              color: '#991b1b',
+              fontSize: '14px'
+            }}>
+              {lang === 'sv'
+                ? '⚠️ Du måste välja ett fraktsätt'
+                : '⚠️ You must select a shipping method'}
+            </div>
+          )}
         </div>
 
         <div style={{
