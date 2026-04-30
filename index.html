@@ -27,13 +27,25 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <script src="lib/init-lang.js"></script>
+<script src="lib/cart-manager.js"></script>
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="components/icons.jsx"></script>
 <script type="text/babel" src="components/header.jsx"></script>
+<script type="text/babel" src="components/cart-drawer.jsx"></script>
 <script type="text/babel" src="components/regsearch.jsx"></script>
 <script type="text/babel" src="components/tire.jsx"></script>
 <script type="text/babel" src="components/heroes.jsx"></script>
 <script type="text/babel" src="components/sections.jsx"></script>
 <script type="text/babel" src="app.jsx"></script>
+
+<!-- Render cart drawer in header -->
+<script type="text/babel">
+  setTimeout(() => {
+    const root = document.getElementById('cart-drawer-root');
+    if (root) {
+      ReactDOM.createRoot(root).render(<DCCartDrawer/>);
+    }
+  }, 100);
+</script>
 </body>
 </html>

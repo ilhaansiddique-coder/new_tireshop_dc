@@ -182,10 +182,7 @@ function Header({ activeIndex = 0 }) {
         <div className="header-right">
           <button className="icon-btn" aria-label={searchAriaLabel}><IconSearch/></button>
           <button className="icon-btn" aria-label={accountAriaLabel}><IconUser/></button>
-          <a href="#" className="cart-pill" aria-label={cartAriaLabel}>
-            <IconCart size={18}/>
-            <span className="count">2</span>
-          </a>
+          <div id="cart-drawer-root" style={{display: 'contents'}}></div>
           <a href="#boka" className="book-btn">{bookButtonText}</a>
         </div>
       </div>

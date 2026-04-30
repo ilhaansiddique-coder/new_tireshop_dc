@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="sv" data-theme="light" data-accent="green">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Kassa — Däckcentrum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700;800&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles/tokens.css?v=12"/>
+<link rel="stylesheet" href="styles/header.css?v=12"/>
+<style>
+  body {
+    background: #f9fafb;
+  }
+
+  .checkout-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .checkout-header {
+    margin-bottom: 40px;
+  }
+
+  .checkout-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .checkout-header p {
+    margin: 0;
+    font-size: 16px;
+    color: #6b7280;
+  }
+
+  .checkout-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+
+  .checkout-form-wrapper {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .checkout-summary {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+  }
+
+  .summary-title {
+    margin: 0 0 24px 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .summary-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .summary-item {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .summary-item-name {
+    flex: 1;
+    font-size: 14px;
+  }
+
+  .summary-item-qty {
+    color: #6b7280;
+    font-size: 13px;
+  }
+
+  .summary-item-price {
+    font-weight: 600;
+    text-align: right;
+    min-width: 80px;
+  }
+
+  .summary-totals {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+  }
+
+  .summary-row.total {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-accent, #10b981);
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .empty-cart {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .empty-cart h2 {
+    margin: 0 0 16px 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .empty-cart p {
+    margin: 0 0 24px 0;
+    color: #6b7280;
+  }
+
+  .empty-cart a {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--color-accent, #10b981);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+  }
+
+  .empty-cart a:hover {
+    opacity: 0.9;
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #e5e7eb;
+    border-top-color: var(--color-accent, #10b981);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .success-message {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    color: #166534;
+  }
+
+  .error-message {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    color: #991b1b;
+  }
+
+  @media (max-width: 768px) {
+    .checkout-content {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .checkout-summary {
+      position: relative;
+      top: auto;
+    }
+
+    .checkout-form-wrapper {
+      padding: 24px;
+    }
+
+    .checkout-summary {
+      padding: 24px;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div id="header"></div>
+
+<div class="checkout-container">
+  <div class="checkout-header">
+    <h1 id="page-title">Kassa</h1>
+    <p id="page-desc">Slutför din beställning</p>
+  </div>
+
+  <div id="checkout-content"></div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="lib/init-lang.js"></script>
+<script src="lib/cart-manager.js"></script>
+
+<script type="text/babel" src="components/icons.jsx"></script>
+<script type="text/babel" src="components/header.jsx"></script>
+<script type="text/babel" src="components/cart-drawer.jsx"></script>
+<script type="text/babel" src="components/checkout-form.jsx"></script>
+
+<script type="text/babel">
+  const { useState, useEffect } = React;
+
+  const translations = {
+    sv: {
+      pageTitle: 'Kassa',
+      pageDesc: 'Slutför din beställning',
+      emptyCart: 'Din varukorg är tom',
+      emptyDesc: 'Gå tillbaka och lägg till produkter i varukorgen',
+      continueShopping: 'Fortsätta handla',
+      orderSummary: 'Ordersummering',
+      subtotal: 'Delsumma',
+      shipping: 'Frakt',
+      total: 'Totalt',
+      processing: 'Bearbetar beställning...',
+      orderPlaced: 'Beställning mottagen!',
+      orderNumber: 'Ordernummer:',
+      error: 'Fel vid beställning',
+      tryAgain: 'Försök igen'
+    },
+    en: {
+      pageTitle: 'Checkout',
+      pageDesc: 'Complete your order',
+      emptyCart: 'Your shopping cart is empty',
+      emptyDesc: 'Go back and add products to your cart',
+      continueShopping: 'Continue Shopping',
+      orderSummary: 'Order Summary',
+      subtotal: 'Subtotal',
+      shipping: 'Shipping',
+      total: 'Total',
+      processing: 'Processing order...',
+      orderPlaced: 'Order received!',
+      orderNumber: 'Order number:',
+      error: 'Error placing order',
+      tryAgain: 'Try again'
+    }
+  };
+
+  function CheckoutPage() {
+    const [lang, setLang] = useState(window.DC_LANG?.current || 'sv');
+    const [cart, setCart] = useState(CartManager.getCart());
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState(null);
+
+    useEffect(() => {
+      const unsubscribe = CartManager.subscribe((updatedCart) => {
+        setCart(updatedCart);
+      });
+
+      const handleLanguageChange = () => {
+        setLang(window.DC_LANG?.current || 'sv');
+      };
+
+      document.addEventListener('languagechange', handleLanguageChange);
+      window.addEventListener('dc-language-changed', handleLanguageChange);
+
+      return () => {
+        unsubscribe();
+        document.removeEventListener('languagechange', handleLanguageChange);
+        window.removeEventListener('dc-language-changed', handleLanguageChange);
+      };
+    }, []);
+
+    const t = translations[lang] || translations.sv;
+
+    const formatPrice = (priceOre) => {
+      const priceSek = priceOre / 100;
+      return new Intl.NumberFormat('sv-SE', {
+        style: 'currency',
+        currency: 'SEK',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(priceSek);
+    };
+
+    const handleCheckoutSubmit = async (customerData, deliveryOption) => {
+      setLoading(true);
+      setMessage(null);
+
+      try {
+        const orderData = CartManager.prepareOrder(customerData, deliveryOption);
+
+        // Call the API to create order
+        const response = await fetch(
+          `${process.env.BACKEND_API_URL || process.env.INTERNAL_API_URL || 'http://127.0.0.1:4000'}/api/v2/orders`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Api-Key': process.env.REACT_APP_EONTYRE_API_KEY || ''
+            },
+            body: JSON.stringify(orderData)
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.response?.err) {
+          throw new Error(result.response.err);
+        }
+
+        const orderId = result.data?.id;
+
+        // Clear cart on success
+        CartManager.clearCart();
+
+        // Show success message
+        setMessage({
+          type: 'success',
+          text: t.orderPlaced,
+          orderId: orderId
+        });
+
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          window.location.href = `/order-confirmation.html?order=${orderId}`;
+        }, 2000);
+
+      } catch (error) {
+        setMessage({
+          type: 'error',
+          text: `${t.error}: ${error.message}`
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Update page titles
+    useEffect(() => {
+      document.getElementById('page-title').textContent = t.pageTitle;
+      document.getElementById('page-desc').textContent = t.pageDesc;
+    }, [lang]);
+
+    // Empty cart
+    if (cart.items.length === 0) {
+      return (
+        <div className="empty-cart">
+          <h2>{t.emptyCart}</h2>
+          <p>{t.emptyDesc}</p>
+          <a href="/">{t.continueShopping}</a>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {/* Message */}
+        {message && (
+          <div className={`${message.type}-message`}>
+            {message.type === 'success' ? '✓ ' : '✗ '}
+            {message.text}
+            {message.orderId && <br />}
+            {message.orderId && (
+              <>
+                {t.orderNumber} <strong>#{message.orderId}</strong>
+              </>
+            )}
+          </div>
+        )}
+
+        <div className="checkout-content">
+          {/* Form */}
+          <div className="checkout-form-wrapper">
+            <DCCheckoutForm
+              onSubmit={handleCheckoutSubmit}
+              loading={loading}
+            />
+          </div>
+
+          {/* Summary */}
+          <div className="checkout-summary">
+            <h3 className="summary-title">{t.orderSummary}</h3>
+
+            <div className="summary-items">
+              {cart.items.map((item, idx) => (
+                <div key={idx} className="summary-item">
+                  <div>
+                    <div className="summary-item-name">{item.name}</div>
+                    <div className="summary-item-qty">
+                      {lang === 'sv' ? 'Antal' : 'Qty'}: {item.quantity}
+                    </div>
+                  </div>
+                  <div className="summary-item-price">
+                    {formatPrice(item.price * item.quantity)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="summary-totals">
+              <div className="summary-row">
+                <span>{t.subtotal}</span>
+                <span>{formatPrice(cart.subtotal)}</span>
+              </div>
+              <div className="summary-row">
+                <span>{t.shipping}</span>
+                <span>{lang === 'sv' ? 'Gratis' : 'Free'}</span>
+              </div>
+              <div className="summary-row total">
+                <span>{t.total}</span>
+                <span>{formatPrice(cart.subtotal)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Render topbar
+  const topbarRoot = document.getElementById('topbar');
+  if (topbarRoot) {
+    ReactDOM.createRoot(topbarRoot).render(<DCTopBar />);
+  }
+
+  // Render header with cart drawer root
+  const headerRoot = document.getElementById('header');
+  if (headerRoot) {
+    ReactDOM.createRoot(headerRoot).render(
+      <>
+        <DCHeader activeIndex={0} />
+        <div id="cart-drawer-root" style={{display: 'contents'}}></div>
+      </>
+    );
+
+    // Render cart drawer after header
+    setTimeout(() => {
+      const cartRoot = document.getElementById('cart-drawer-root');
+      if (cartRoot) {
+        ReactDOM.createRoot(cartRoot).render(<DCCartDrawer/>);
+      }
+    }, 100);
+  }
+
+  // Render checkout content
+  ReactDOM.createRoot(document.getElementById('checkout-content')).render(
+    <CheckoutPage />
+  );
+</script>
+</body>
+</html>

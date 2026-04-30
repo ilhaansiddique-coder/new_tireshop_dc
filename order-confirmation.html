@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="sv" data-theme="light" data-accent="green">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Orderkonfirmation — Däckcentrum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700;800&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles/tokens.css?v=12"/>
+<link rel="stylesheet" href="styles/header.css?v=12"/>
+<style>
+  body {
+    background: #f9fafb;
+  }
+
+  .confirmation-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    text-align: center;
+  }
+
+  .confirmation-header {
+    margin-bottom: 40px;
+  }
+
+  .check-icon {
+    width: 80px;
+    height: 80px;
+    background: #f0fdf4;
+    border: 3px solid var(--color-accent, #10b981);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    color: var(--color-accent, #10b981);
+    font-size: 48px;
+    font-weight: bold;
+  }
+
+  .confirmation-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .confirmation-header p {
+    margin: 0;
+    font-size: 16px;
+    color: #6b7280;
+  }
+
+  .confirmation-details {
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    margin-bottom: 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    text-align: left;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .detail-value {
+    font-weight: 600;
+    color: var(--color-text, #1f2937);
+  }
+
+  .next-steps {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 40px;
+    text-align: left;
+  }
+
+  .next-steps h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #166534;
+  }
+
+  .next-steps ol {
+    margin: 0;
+    padding-left: 24px;
+    color: #166534;
+  }
+
+  .next-steps li {
+    margin-bottom: 12px;
+  }
+
+  .confirmation-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 12px 32px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-primary {
+    background: var(--color-accent, #10b981);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-accent, #10b981);
+    border: 1px solid var(--color-accent, #10b981);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-accent, #10b981);
+    color: white;
+  }
+
+  .error-state {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    color: #991b1b;
+  }
+
+  .error-state h2 {
+    margin: 0 0 16px 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .error-state p {
+    margin: 0 0 24px 0;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e5e7eb;
+    border-top-color: var(--color-accent, #10b981);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 600px) {
+    .confirmation-container {
+      padding: 40px 20px;
+    }
+
+    .confirmation-details {
+      padding: 24px;
+    }
+
+    .confirmation-actions {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div id="header"></div>
+
+<div class="confirmation-container">
+  <div id="content"></div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="lib/init-lang.js"></script>
+<script src="lib/cart-manager.js"></script>
+
+<script type="text/babel" src="components/icons.jsx"></script>
+<script type="text/babel" src="components/header.jsx"></script>
+<script type="text/babel" src="components/cart-drawer.jsx"></script>
+
+<script type="text/babel">
+  const { useState, useEffect } = React;
+
+  const translations = {
+    sv: {
+      title: 'Orderkonfirmation',
+      subtitle: 'Din beställning har mottagits!',
+      confirmTitle: 'Tack för din beställning',
+      confirmDesc: 'Vi har mottagit din order och kommer att påbörja behandlingen snart.',
+      orderNumber: 'Ordernummer',
+      orderDate: 'Orderdatum',
+      totalAmount: 'Totalt belopp',
+      status: 'Status',
+      status_pending: 'Väntande',
+      nextSteps: 'Nästa steg',
+      step1: 'Orderbekräftelse skickas via e-post',
+      step2: 'Dina produkter förbereds för hämtning',
+      step3: 'Vi kontaktar dig när allt är klart',
+      backHome: 'Tillbaka till startsidan',
+      continueShopping: 'Fortsätt handla',
+      error: 'Ordernummer kunde inte hittas',
+      errorDesc: 'Det verkar som att något gick fel. Kontakta oss för att få hjälp.',
+      loading: 'Hämtar orderdetaljer...'
+    },
+    en: {
+      title: 'Order Confirmation',
+      subtitle: 'Your order has been received!',
+      confirmTitle: 'Thank you for your order',
+      confirmDesc: 'We have received your order and will begin processing it shortly.',
+      orderNumber: 'Order Number',
+      orderDate: 'Order Date',
+      totalAmount: 'Total Amount',
+      status: 'Status',
+      status_pending: 'Pending',
+      nextSteps: 'What\'s Next',
+      step1: 'Order confirmation will be sent to your email',
+      step2: 'Your products will be prepared for pickup',
+      step3: 'We\'ll contact you when everything is ready',
+      backHome: 'Back to Home',
+      continueShopping: 'Continue Shopping',
+      error: 'Order number not found',
+      errorDesc: 'Something went wrong. Please contact us for assistance.',
+      loading: 'Loading order details...'
+    }
+  };
+
+  function ConfirmationPage() {
+    const [lang, setLang] = useState(window.DC_LANG?.current || 'sv');
+    const [order, setOrder] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+      const handleLanguageChange = () => {
+        setLang(window.DC_LANG?.current || 'sv');
+      };
+
+      document.addEventListener('languagechange', handleLanguageChange);
+      window.addEventListener('dc-language-changed', handleLanguageChange);
+
+      return () => {
+        document.removeEventListener('languagechange', handleLanguageChange);
+        window.removeEventListener('dc-language-changed', handleLanguageChange);
+      };
+    }, []);
+
+    useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get('order');
+
+      if (!orderId) {
+        setError(true);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch order details from API
+      fetch(
+        `${process.env.BACKEND_API_URL || process.env.INTERNAL_API_URL || 'http://127.0.0.1:4000'}/api/v2/orders/${orderId}`,
+        {
+          headers: {
+            'Api-Key': process.env.REACT_APP_EONTYRE_API_KEY || ''
+          }
+        }
+      )
+        .then(res => res.json())
+        .then(data => {
+          if (data.response?.err) {
+            setError(true);
+          } else {
+            setOrder(data.data);
+          }
+        })
+        .catch(() => setError(true))
+        .finally(() => setLoading(false));
+    }, []);
+
+    const t = translations[lang] || translations.sv;
+
+    const formatPrice = (priceOre) => {
+      const priceSek = priceOre / 100;
+      return new Intl.NumberFormat('sv-SE', {
+        style: 'currency',
+        currency: 'SEK',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(priceSek);
+    };
+
+    if (loading) {
+      return (
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>{t.loading}</p>
+        </div>
+      );
+    }
+
+    if (error || !order) {
+      return (
+        <div className="error-state">
+          <h2>{t.error}</h2>
+          <p>{t.errorDesc}</p>
+          <a href="/" className="btn btn-primary">{t.backHome}</a>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="confirmation-header">
+          <div className="check-icon">✓</div>
+          <h1>{t.confirmTitle}</h1>
+          <p>{t.confirmDesc}</p>
+        </div>
+
+        <div className="confirmation-details">
+          <div className="detail-row">
+            <span className="detail-label">{t.orderNumber}</span>
+            <span className="detail-value">#{order.id}</span>
+          </div>
+          <div className="detail-row">
+            <span className="detail-label">{t.orderDate}</span>
+            <span className="detail-value">
+              {new Date(order.created_at || Date.now()).toLocaleDateString('sv-SE')}
+            </span>
+          </div>
+          <div className="detail-row">
+            <span className="detail-label">{t.totalAmount}</span>
+            <span className="detail-value">
+              {order.total ? formatPrice(order.total) : '-'}
+            </span>
+          </div>
+          <div className="detail-row">
+            <span className="detail-label">{t.status}</span>
+            <span className="detail-value">{t.status_pending}</span>
+          </div>
+        </div>
+
+        <div className="next-steps">
+          <h3>{t.nextSteps}</h3>
+          <ol>
+            <li>{t.step1}</li>
+            <li>{t.step2}</li>
+            <li>{t.step3}</li>
+          </ol>
+        </div>
+
+        <div className="confirmation-actions">
+          <a href="/" className="btn btn-primary">{t.backHome}</a>
+          <a href="/" className="btn btn-secondary">{t.continueShopping}</a>
+        </div>
+      </>
+    );
+  }
+
+  // Render topbar
+  const topbarRoot = document.getElementById('topbar');
+  if (topbarRoot) {
+    ReactDOM.createRoot(topbarRoot).render(<DCTopBar />);
+  }
+
+  // Render header with cart drawer root
+  const headerRoot = document.getElementById('header');
+  if (headerRoot) {
+    ReactDOM.createRoot(headerRoot).render(
+      <>
+        <DCHeader activeIndex={0} />
+        <div id="cart-drawer-root" style={{display: 'contents'}}></div>
+      </>
+    );
+
+    // Render cart drawer after header
+    setTimeout(() => {
+      const cartRoot = document.getElementById('cart-drawer-root');
+      if (cartRoot) {
+        ReactDOM.createRoot(cartRoot).render(<DCCartDrawer/>);
+      }
+    }, 100);
+  }
+
+  // Render content
+  ReactDOM.createRoot(document.getElementById('content')).render(
+    <ConfirmationPage />
+  );
+</script>
+</body>
+</html>
