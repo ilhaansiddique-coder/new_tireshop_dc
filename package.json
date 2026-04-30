@@ -4,7 +4,8 @@
   "description": "Sales Management System",
   "scripts": {
     "dev": "http-server -c-1 -o",
-    "build": "echo 'No build needed for browser-based app'"
+    "build": "echo 'Static site ready for Vercel'",
+    "start": "http-server"
   },
   "dependencies": {},
   "devDependencies": {
