@@ -1,0 +1,13 @@
+{
+  "name": "sales-management-system",
+  "version": "1.0.0",
+  "description": "Sales Management System",
+  "scripts": {
+    "dev": "http-server -c-1 -o",
+    "build": "echo 'No build needed for browser-based app'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

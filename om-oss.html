@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="sv" data-theme="light" data-accent="green">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Om oss — Däckcentrum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles/tokens.css?v=12"/>
+<link rel="stylesheet" href="styles/header.css?v=12"/>
+<link rel="stylesheet" href="styles/sections.css?v=12"/>
+<link rel="stylesheet" href="styles/subpage.css?v=12"/>
+<style>
+  .om-hero { padding: 96px 0 80px; background: var(--bg-alt); border-bottom: 1px solid var(--line); }
+  .om-hero h1 { font-size: clamp(56px, 8vw, 140px); line-height: .95; max-width: 12ch; margin-bottom: 24px; }
+  .om-hero h1 em { font-style: italic; font-weight: 500; color: var(--accent-strong); }
+  .timeline { padding: var(--pad-section) 0; background: var(--bg); }
+  .tl-list { display: grid; gap: 0; margin-top: 48px; max-width: 800px; }
+  .tl-row { display: grid; grid-template-columns: 100px 1fr; gap: 32px; padding: 32px 0; border-top: 1px solid var(--line); }
+  .tl-row:last-child { border-bottom: 1px solid var(--line); }
+  .tl-year { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--accent-strong); letter-spacing: -.02em; }
+  .tl-content h3 { font-size: 22px; margin-bottom: 8px; }
+  .tl-content p { color: var(--ink-3); font-size: 15px; line-height: 1.55; max-width: 56ch; }
+  .values { padding: var(--pad-section) 0; background: var(--bg-alt); }
+  .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; }
+  .value-card { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-xl); padding: 40px; transition: transform var(--t-med) var(--ease-emph); }
+  .value-card:hover { transform: translateY(-4px); }
+  .value-card .ic { width: 48px; height: 48px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-strong); display: grid; place-items: center; margin-bottom: 24px; }
+  .value-card h3 { margin-bottom: 12px; }
+  .value-card p { color: var(--ink-3); font-size: 15px; line-height: 1.55; }
+  @media (max-width: 880px) { .values-grid { grid-template-columns: 1fr; } .tl-row { grid-template-columns: 1fr; gap: 12px; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="lib/init-lang.js"></script>
+<script type="text/babel" src="components/icons.jsx"></script>
+<script type="text/babel" src="components/header.jsx"></script>
+<script type="text/babel" src="components/regsearch.jsx"></script>
+<script type="text/babel" src="components/tire.jsx"></script>
+<script type="text/babel" src="components/sections.jsx"></script>
+<script type="text/babel">
+  const { Footer, CTAStrip, Contact } = window.DCSections;
+  const { IconShield, IconLeaf, IconSpark, IconArrow } = window.DCIcons;
+
+  function OmOss() {
+    return (
+      <>
+        <window.DCTopBar/>
+        <window.DCHeader activeIndex={-1}/>
+        <main>
+          <section className="om-hero">
+            <div className="container">
+              <div className="crumbs"><a href="index.html">Hem</a><span className="sep">/</span><span style={{color:"var(--ink-2)"}}>Om oss</span></div>
+              <div style={{marginTop:32, display:"grid", gridTemplateColumns:"1.4fr 1fr", gap:64, alignItems:"end"}}>
+                <div>
+                  <span className="eyebrow">Om Däckcentrum</span>
+                  <h1 style={{marginTop:14}}>Familj. Däck. <em>Helsingborg</em>.</h1>
+                  <p style={{fontSize:19, color:"var(--ink-3)", lineHeight:1.55, maxWidth:"58ch"}}>
+                    Vi är en familjeägd däckverkstad som funnits i Helsingborg sedan 1992. Idag är vi sju mekaniker och tre receptionister — fortfarande på samma adress, fortfarande utan mellanhänder.
+                  </p>
+                </div>
+                <div style={{aspectRatio:"4/5", borderRadius:"var(--r-xl)", background:"linear-gradient(180deg, var(--bg-warm), var(--bg-alt))", border:"1px solid var(--line)", display:"grid", placeItems:"center", color:"var(--ink-4)", fontSize:11, letterSpacing:".14em", textTransform:"uppercase"}}>FOTO · Verkstaden</div>
+              </div>
+            </div>
+          </section>
+
+          <section className="timeline">
+            <div className="container">
+              <div className="section-head">
+                <div>
+                  <span className="eyebrow">Resan</span>
+                  <h2 style={{marginTop:14}}>Från en port —<br/>till sju mekaniker.</h2>
+                </div>
+                <p className="sub">Vi har vuxit långsamt och med flit. Det är vi stolta över.</p>
+              </div>
+              <div className="tl-list">
+                <div className="tl-row"><div className="tl-year">1992</div><div className="tl-content"><h3>Däckcentrum öppnar</h3><p>Bertil och Anna Lundgren öppnar en däckverkstad i en port på Musköstgatan. En lyft, två par händer.</p></div></div>
+                <div className="tl-row"><div className="tl-year">2003</div><div className="tl-content"><h3>Däckhotell startar</h3><p>Vi tar in vår första kundvagn med däck för förvaring. Den får sällskap snabbt — idag förvarar vi 4 200 hjul.</p></div></div>
+                <div className="tl-row"><div className="tl-year">2011</div><div className="tl-content"><h3>Generation 2</h3><p>Sonen Markus tar över driften, bygger ut verkstaden till sex lyftar och lägger till hjulinställning.</p></div></div>
+                <div className="tl-row"><div className="tl-year">2018</div><div className="tl-content"><h3>Continental Premium Partner</h3><p>Vi blir auktoriserade Continental Premium Partner — en kvalitetsstämpel vi tar på allvar.</p></div></div>
+                <div className="tl-row"><div className="tl-year">2024</div><div className="tl-content"><h3>DC Wheels lanseras</h3><p>Vårt egna märke DC Wheels — fälg designade i Helsingborg, tillverkade i Italien.</p></div></div>
+              </div>
+            </div>
+          </section>
+
+          <section className="values">
+            <div className="container">
+              <div className="section-head">
+                <div>
+                  <span className="eyebrow">Hur vi jobbar</span>
+                  <h2 style={{marginTop:14}}>Tre saker.</h2>
+                </div>
+                <p className="sub">De har inte ändrats sedan 1992 — och kommer inte göra det.</p>
+              </div>
+              <div className="values-grid">
+                <div className="value-card"><div className="ic"><IconShield size={22}/></div><h3>Ärlig bedömning</h3><p>Vi rekommenderar bara det du behöver. Inte det vi tjänar mest på. Punkt.</p></div>
+                <div className="value-card"><div className="ic"><IconSpark size={22}/></div><h3>Verkstad — på riktigt</h3><p>Allt görs inhouse. Däckmontering, balansering, hjulinställning, fälgrenovering — du behöver bara åka till oss.</p></div>
+                <div className="value-card"><div className="ic"><IconLeaf size={22}/></div><h3>Långsiktigt</h3><p>Vi tänker säsong fyra, inte säsong ett. Däckhotellet är byggt för att du ska komma tillbaka i tio år.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <Contact/>
+          <CTAStrip/>
+        </main>
+        <Footer/>
+      </>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<OmOss/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+# ========================================
+# STRICT IGNORE RULES - NEVER COMMIT THESE
+# ========================================
+
+# Claude Code related (ABSOLUTELY NO CLAUDE DATA)
+.claude/
+.clauderc
+.claude.json
+
+# Environment & Secrets (NEVER push credentials)
+.env
+.env.local
+.env.*.local
+.env.production.local
+.env.development.local
+
+# Sensitive Data
+.DS_Store
+Thumbs.db
+*.log
+*.pid
+*.tmp
+
+# Dependencies & Build
+node_modules/
+package-lock.json
+yarn.lock
+dist/
+build/
+.next/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backend
+backend/node_modules/
+backend/.env
+backend-*.log
+
+# Binaries
+cloudflared.exe
+*.exe
+
+# Cache & Build artifacts
+.cache/
+.turbo/
+frontendClaude/.next/
+
+# Git specific
+.git/
+
+# NOTHING ELSE SHOULD BE IGNORED - COMMIT YOUR PROJECT FILES!

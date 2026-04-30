@@ -1,0 +1,25 @@
+/* Shared stub-page styles */
+.subpage {
+  padding-top: 56px;
+  padding-bottom: 0;
+}
+.hero-stub {
+  padding: 80px 0;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.hero-stub h1 {
+  font-size: clamp(56px, 7vw, 120px);
+  line-height: .96;
+  margin-bottom: 24px;
+}
+.hero-stub h1 em { font-style: italic; font-weight: 500; color: var(--ink-3); }
+.hero-stub .lede {
+  font-size: 18px;
+  color: var(--ink-3);
+  max-width: 56ch;
+  margin: 0 0 32px;
+  line-height: 1.55;
+}
