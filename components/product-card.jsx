@@ -52,7 +52,7 @@ function ProductCard({ product, onAdd }) {
   const handleAddToCart = async () => {
     setIsAdding(true);
     try {
-      CartManager.addItem(product, 1);
+      window.CartManager?.addItem?.(product, 1);
       setIsAdded(true);
 
       if (onAdd) {

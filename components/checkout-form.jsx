@@ -3,24 +3,29 @@
 const { useState, useEffect } = React;
 const { IconCheck, IconAlertCircle } = DCIcons;
 
-function CheckoutForm({ onSubmit, loading = false }) {
+function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) {
   const [lang, setLang] = useState(window.DC_LANG?.current || 'sv');
   const [customerType, setCustomerType] = useState('person');
   const [useProfile, setUseProfile] = useState(false);
-  const [savedProfile, setSavedProfile] = useState(CartManager.getCustomer());
+  const [savedProfile, setSavedProfile] = useState(() => {
+    return window.CartManager?.getCustomer?.() || null;
+  });
 
-  const [formData, setFormData] = useState({
-    name: savedProfile?.name || '',
-    email: savedProfile?.email || '',
-    phone: savedProfile?.phone || '',
-    address1: savedProfile?.address1 || '',
-    address2: savedProfile?.address2 || '',
-    postal_code: savedProfile?.postal_code || '',
-    city: savedProfile?.city || '',
-    id_number: savedProfile?.id_number || '',
-    car_licenseplate: '',
-    car_mileage: '',
-    save_profile: false
+  const [formData, setFormData] = useState(() => {
+    const profile = savedProfile;
+    return {
+      name: profile?.name || '',
+      email: profile?.email || '',
+      phone: profile?.phone || '',
+      address1: profile?.address1 || '',
+      address2: profile?.address2 || '',
+      postal_code: profile?.postal_code || '',
+      city: profile?.city || '',
+      id_number: profile?.id_number || '',
+      car_licenseplate: '',
+      car_mileage: '',
+      save_profile: false
+    };
   });
 
   const [errors, setErrors] = useState({});
@@ -136,6 +141,11 @@ function CheckoutForm({ onSubmit, loading = false }) {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+
+    // Trigger shipping query when postal code is entered
+    if (name === 'postal_code' && value.length >= 5 && onPostalCodeChange) {
+      onPostalCodeChange(value, formData.city, formData.address1);
+    }
   };
 
   const handleLoadProfile = () => {
@@ -157,8 +167,22 @@ function CheckoutForm({ onSubmit, loading = false }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('📝 Form submitted, validating...');
+    console.log('📋 Current form data:', formData);
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.warn('❌ Form validation failed');
+      console.warn('❌ Errors:', errors);
+      return;
+    }
+
+    console.log('✅ Form validation passed');
+
+    if (!onSubmit) {
+      console.error('❌ onSubmit callback is not defined!');
+      alert('Fel: Beställningshanterare är inte tillgänglig');
+      return;
+    }
 
     const customerData = {
       type: customerType === 'business' ? 1 : 2,
@@ -181,14 +205,22 @@ function CheckoutForm({ onSubmit, loading = false }) {
     }
 
     if (formData.save_profile) {
-      CartManager.saveCustomer(customerData);
+      window.CartManager?.saveCustomer?.(customerData);
     }
 
-    onSubmit(customerData, 0); // 0 = pickup option
+    console.log('📤 Calling onSubmit with customer data:', customerData);
+    try {
+      onSubmit(customerData, 0); // 0 = pickup option
+    } catch (err) {
+      console.error('❌ Error calling onSubmit:', err);
+      alert('Fel vid beställning: ' + err.message);
+    }
   };
 
+  const formRef = React.useRef(null);
+
   return (
-    <form className="checkout-form" onSubmit={handleSubmit}>
+    <form className="checkout-form" onSubmit={handleSubmit} ref={formRef}>
       {/* Show profile selector if profile exists */}
       {savedProfile && !useProfile && (
         <div className="form-section profile-selector">
@@ -449,9 +481,14 @@ function CheckoutForm({ onSubmit, loading = false }) {
       {/* Submit Buttons */}
       <div className="form-actions">
         <button
-          type="submit"
+          type="button"
           className="btn btn-primary"
           disabled={loading}
+          onClick={(e) => {
+            console.log('🖱️ Submit button clicked');
+            console.log('📝 Triggering form submission directly...');
+            handleSubmit({ preventDefault: () => {} });
+          }}
         >
           {loading ? '...' : t.completeOrder}
         </button>

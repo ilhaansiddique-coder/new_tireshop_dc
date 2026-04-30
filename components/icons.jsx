@@ -12,6 +12,10 @@ const Icon = ({ children, size = 20, stroke = 1.6, ...rest }) => (
 const IconSearch = (p) => <Icon {...p}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></Icon>;
 const IconUser = (p) => <Icon {...p}><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></Icon>;
 const IconCart = (p) => <Icon {...p}><path d="M3 4h2l2.5 12h11L21 7H6"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></Icon>;
+const IconShoppingCart = (p) => <Icon {...p}><path d="M3 4h2l2.5 12h11L21 7H6"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></Icon>;
+const IconMinus = (p) => <Icon {...p}><path d="M5 12h14"/></Icon>;
+const IconX = (p) => <Icon {...p}><path d="M5 5l14 14"/><path d="M19 5 5 19"/></Icon>;
+const IconTrash = (p) => <Icon {...p}><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M9 9v9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V9"/><path d="M10 12h4"/><path d="M10 16h4"/></Icon>;
 const IconPin = (p) => <Icon {...p}><path d="M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></Icon>;
 const IconPhone = (p) => <Icon {...p}><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></Icon>;
 const IconMail = (p) => <Icon {...p}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></Icon>;
@@ -19,6 +23,7 @@ const IconClock = (p) => <Icon {...p}><circle cx="12" cy="12" r="9"/><path d="M1
 const IconArrow = (p) => <Icon {...p}><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></Icon>;
 const IconArrowUR = (p) => <Icon {...p}><path d="M7 17 17 7"/><path d="M8 7h9v9"/></Icon>;
 const IconCheck = (p) => <Icon {...p}><path d="m5 12 4 4 10-10"/></Icon>;
+const IconAlertCircle = (p) => <Icon {...p}><circle cx="12" cy="12" r="9"/><path d="M12 7v4"/><path d="M12 17h.01"/></Icon>;
 const IconPlus = (p) => <Icon {...p}><path d="M12 5v14"/><path d="M5 12h14"/></Icon>;
 const IconShield = (p) => <Icon {...p}><path d="M12 3 4 6v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></Icon>;
 const IconSpark = (p) => <Icon {...p}><path d="M12 3v4"/><path d="M12 17v4"/><path d="M3 12h4"/><path d="M17 12h4"/><path d="m6 6 2.5 2.5"/><path d="m15.5 15.5 2.5 2.5"/><path d="m6 18 2.5-2.5"/><path d="m15.5 8.5 2.5-2.5"/></Icon>;
@@ -37,8 +42,8 @@ const IconIG = (p) => <Icon {...p}><rect x="3" y="3" width="18" height="18" rx="
 const IconYT = (p) => <Icon {...p}><rect x="3" y="6" width="18" height="12" rx="3"/><path d="m10 9 5 3-5 3Z"/></Icon>;
 
 window.DCIcons = {
-  IconSearch, IconUser, IconCart, IconPin, IconPhone, IconMail, IconClock,
-  IconArrow, IconArrowUR, IconCheck, IconPlus, IconShield, IconSpark, IconLeaf,
+  IconSearch, IconUser, IconCart, IconShoppingCart, IconMinus, IconX, IconTrash, IconPin, IconPhone, IconMail, IconClock,
+  IconArrow, IconArrowUR, IconCheck, IconAlertCircle, IconPlus, IconShield, IconSpark, IconLeaf,
   IconBox, IconWrench, IconGauge, IconTarget, IconRefresh, IconStar, IconTire,
   IconRim, IconChev, IconFB, IconIG, IconYT
 };

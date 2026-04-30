@@ -1,4 +1,4 @@
-/* global React, ReactDOM, DCHeader, DCTopBar, DCHero, DCSections, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakSelect, TweakToggle */
+/* global React, ReactDOM, DCHeader, DCTopBar, DCHero, DCSections, SearchResults, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakSelect, TweakToggle */
 
 const { useEffect, useRef } = React;
 const { Marquee, Services, RegBanner, HotelPush, AboutTeaser, FAQ, Contact, CTAStrip, Footer } = DCSections;
@@ -80,6 +80,7 @@ function App() {
       <DCHeader activeIndex={0}/>
       <main>
         <Hero/>
+        <SearchResults/>
         <Marquee/>
         <Services/>
         <RegBanner/>

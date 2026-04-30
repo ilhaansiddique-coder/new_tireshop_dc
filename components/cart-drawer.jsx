@@ -5,11 +5,18 @@ const { IconX, IconShoppingCart, IconMinus, IconPlus, IconTrash } = DCIcons;
 
 function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const [cart, setCart] = useState(CartManager.getCart());
+  const [cart, setCart] = useState(() => {
+    return (window.CartManager?.getCart?.()) || { items: [], subtotal: 0 };
+  });
   const [lang, setLang] = useState(window.DC_LANG?.current || 'sv');
 
   useEffect(() => {
-    const unsubscribe = CartManager.subscribe((updatedCart) => {
+    if (!window.CartManager?.subscribe) {
+      console.warn('⚠️ CartManager.subscribe not available yet');
+      return;
+    }
+
+    const unsubscribe = window.CartManager.subscribe((updatedCart) => {
       setCart(updatedCart);
     });
 
@@ -21,7 +28,7 @@ function CartDrawer() {
     window.addEventListener('dc-language-changed', handleLanguageChange);
 
     return () => {
-      unsubscribe();
+      unsubscribe?.();
       document.removeEventListener('languagechange', handleLanguageChange);
       window.removeEventListener('dc-language-changed', handleLanguageChange);
     };
@@ -55,15 +62,15 @@ function CartDrawer() {
   };
 
   const t = translations[lang] || translations.sv;
-  const itemCount = cart.items.length;
-  const cartCount = CartManager.getCartCount();
+  const itemCount = cart.items?.length || 0;
+  const cartCount = window.CartManager?.getCartCount?.() || 0;
 
   const handleQuantityChange = (item, newQuantity) => {
-    CartManager.updateQuantity(item.id, item.supplier_id, item.location_id, newQuantity);
+    window.CartManager?.updateQuantity?.(item.id, item.supplier_id, item.location_id, newQuantity);
   };
 
   const handleRemoveItem = (item) => {
-    CartManager.removeItem(item.id, item.supplier_id, item.location_id);
+    window.CartManager?.removeItem?.(item.id, item.supplier_id, item.location_id);
   };
 
   const handleCheckout = () => {
@@ -192,7 +199,7 @@ function CartDrawer() {
         </div>
 
         {/* Footer */}
-        {!CartManager.isEmpty() && (
+        {!window.CartManager?.isEmpty?.() && (
           <div className="cart-footer">
             <button
               className="btn btn-checkout"

@@ -38,14 +38,35 @@ function PlateInput({ value, onChange, dark }) {
 
 function RegSearch({ label = "Hitta däck till din bil", help = "Vi visar produkter som passar din bil — gratis och utan inloggning", dark = false, onSearch }) {
   const [reg, setReg] = useState("");
+
+  const handleSearch = () => {
+    console.log('🔍 Search triggered:', { reg, hasOnSearch: !!onSearch });
+    if (onSearch && reg.trim()) {
+      console.log('🔍 Calling onSearch with:', reg);
+      onSearch(reg);
+    } else {
+      console.log('❌ Missing onSearch or empty plate');
+    }
+  };
+
   return (
     <div>
       <form
         className="regsearch"
-        onSubmit={(e) => { e.preventDefault(); onSearch && onSearch(reg); }}>
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSearch();
+        }}>
         <div className="regsearch-label">{label}</div>
         <PlateInput value={reg} onChange={setReg} dark={dark}/>
-        <button type="submit" className="regsearch-cta">
+        <button
+          type="button"
+          className="regsearch-cta"
+          onClick={(e) => {
+            console.log('🖱️ Button clicked!');
+            e.preventDefault();
+            handleSearch();
+          }}>
           Sök
           <span className="arrow"><IconArrow size={16}/></span>
         </button>

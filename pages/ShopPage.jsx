@@ -20,7 +20,12 @@ const translations = {
     loading: 'Laddar däck...',
     error: 'Det gick inte att ladda däck. Försök igen senare.',
     error_car: 'Fordonet hittades inte. Försök med ett annat registreringsnummer.',
-    no_tires: 'Inga däck hittade för denna storlek.'
+    no_tires: 'Inga däck hittade för denna storlek.',
+    manual_search: 'Sök efter däckstorlek istället',
+    tire_width: 'Bredd (mm)',
+    tire_ratio: 'Höjd (%)',
+    tire_diameter: 'Fälgdiameter (tum)',
+    tire_search_btn: 'Sök däck'
   },
   en: {
     title: 'Shop',
@@ -39,7 +44,12 @@ const translations = {
     loading: 'Loading tires...',
     error: 'Failed to load tires. Please try again later.',
     error_car: 'Vehicle not found. Try another license plate.',
-    no_tires: 'No tires found for this size.'
+    no_tires: 'No tires found for this size.',
+    manual_search: 'Search by tire size instead',
+    tire_width: 'Width (mm)',
+    tire_ratio: 'Height (%)',
+    tire_diameter: 'Rim diameter (inch)',
+    tire_search_btn: 'Search tires'
   }
 };
 
@@ -52,6 +62,10 @@ function ShopPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [seasonFilter, setSeasonFilter] = useState(null);
+  const [showManualSearch, setShowManualSearch] = useState(false);
+  const [width, setWidth] = useState('');
+  const [ratio, setRatio] = useState('');
+  const [diameter, setDiameter] = useState('');
 
   useEffect(() => {
     const handleLanguageChange = () => {
@@ -71,17 +85,26 @@ function ShopPage() {
     document.title = `${translations[lang].title} — Däckcentrum`;
   }, [lang]);
 
-  const handlePlateSearch = async (e) => {
-    e.preventDefault();
-    if (!plate.trim()) return;
+  useEffect(() => {
+    // Check for plate in URL query parameter
+    const params = new URLSearchParams(window.location.search);
+    const plateParam = params.get('plate');
+    if (plateParam) {
+      setPlate(plateParam.toUpperCase());
+    }
+  }, []);
+
+  const performSearch = async (searchPlate) => {
+    if (!searchPlate || !searchPlate.trim()) return;
 
     setSearchLoading(true);
     setError(null);
     setCarInfo(null);
     setProducts([]);
+    setShowManualSearch(false);
 
     try {
-      const response = await fetch(`/api/products?plate=${encodeURIComponent(plate)}`);
+      const response = await fetch(`/api/products?plate=${encodeURIComponent(searchPlate)}`);
 
       if (!response.ok) {
         throw new Error(translations[lang].error_car);
@@ -101,9 +124,56 @@ function ShopPage() {
     } catch (err) {
       console.error('Search error:', err);
       setError(err.message || translations[lang].error_car);
+      setShowManualSearch(true);
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  const performManualSearch = async (e) => {
+    e.preventDefault();
+    if (!width || !ratio || !diameter) return;
+
+    setSearchLoading(true);
+    setError(null);
+    setProducts([]);
+
+    try {
+      const response = await fetch(
+        `/api/products?width=${encodeURIComponent(width)}&ratio=${encodeURIComponent(ratio)}&diameter=${encodeURIComponent(diameter)}`
+      );
+
+      if (!response.ok) {
+        throw new Error(translations[lang].error);
+      }
+
+      const data = await response.json();
+
+      if (data.products && data.products.length > 0) {
+        setProducts(data.products);
+        setShowManualSearch(false);
+      } else {
+        setError(translations[lang].no_tires);
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      setError(err.message || translations[lang].error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Auto-search when plate is set from URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('plate') && plate) {
+      performSearch(plate);
+    }
+  }, [plate, lang]);
+
+  const handlePlateSearch = async (e) => {
+    e.preventDefault();
+    performSearch(plate);
   };
 
   const filteredProducts = seasonFilter
@@ -243,6 +313,97 @@ function ShopPage() {
           marginBottom: '20px'
         }}>
           {error}
+        </div>
+      )}
+
+      {/* Manual Tire Search Fallback */}
+      {showManualSearch && error && (
+        <div style={{
+          background: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          padding: '30px',
+          borderRadius: '12px',
+          marginBottom: '40px'
+        }}>
+          <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '18px', fontWeight: '600' }}>
+            {t.manual_search}
+          </h3>
+          <form onSubmit={performManualSearch} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', alignItems: 'flex-end' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                {t.tire_width}
+              </label>
+              <input
+                type="text"
+                placeholder="205"
+                value={width}
+                onChange={(e) => setWidth(e.target.value)}
+                style={{
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                {t.tire_ratio}
+              </label>
+              <input
+                type="text"
+                placeholder="55"
+                value={ratio}
+                onChange={(e) => setRatio(e.target.value)}
+                style={{
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                {t.tire_diameter}
+              </label>
+              <input
+                type="text"
+                placeholder="16"
+                value={diameter}
+                onChange={(e) => setDiameter(e.target.value)}
+                style={{
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={searchLoading || !width || !ratio || !diameter}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#8BC53F',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: (searchLoading || !width || !ratio || !diameter) ? 'not-allowed' : 'pointer',
+                opacity: (searchLoading || !width || !ratio || !diameter) ? 0.7 : 1
+              }}
+            >
+              {searchLoading ? t.searching : t.tire_search_btn}
+            </button>
+          </form>
         </div>
       )}
 

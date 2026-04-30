@@ -144,7 +144,16 @@ function RegBanner() {
               <em>{lang === 'en' ? 'we show what fits.' : 'vi visar vad som passar.'}</em>
             </h2>
             <p>{subtitle}</p>
-            <DCRegSearch label={searchLabel} dark help={searchHelp}/>
+            <DCRegSearch
+              label={searchLabel}
+              dark
+              help={searchHelp}
+              onSearch={(plate) => {
+                if (plate.trim()) {
+                  window.location.href = `/shop.html?plate=${encodeURIComponent(plate.toUpperCase())}`;
+                }
+              }}
+            />
           </div>
           <div className="regbanner-visual">
             <DCTire size="78%"/>

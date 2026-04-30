@@ -16,6 +16,7 @@
   .checkout-header h1 { margin: 0 0 8px 0; font-size: 32px; font-weight: 700; }
   .checkout-header p { margin: 0; font-size: 16px; color: #6b7280; }
   @media (max-width: 768px) { .checkout-container { padding: 24px 20px; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -44,55 +45,34 @@
 <script type="text/babel" src="pages/CheckoutPage.jsx"></script>
 
 <script type="text/babel">
-  window.addEventListener('error', (e) => {
-    console.error('❌ Global JavaScript Error:', e.error);
-  });
+  // Render topbar
+  const topbarRoot = document.getElementById('topbar');
+  if (topbarRoot) {
+    ReactDOM.createRoot(topbarRoot).render(<DCTopBar />);
+  }
 
-  setTimeout(() => {
-    console.log('🚀 Starting checkout page rendering...');
+  // Render header with cart drawer root
+  const headerRoot = document.getElementById('header');
+  if (headerRoot) {
+    ReactDOM.createRoot(headerRoot).render(
+      <>
+        <DCHeader activeIndex={0} />
+        <div id="cart-drawer-root" style={{display: 'contents'}}></div>
+      </>
+    );
 
-    // Render topbar
-    const topbarRoot = document.getElementById('topbar');
-    if (topbarRoot) {
-      console.log('📍 Rendering topbar...');
-      ReactDOM.createRoot(topbarRoot).render(<DCTopBar />);
-    }
+    setTimeout(() => {
+      const cartRoot = document.getElementById('cart-drawer-root');
+      if (cartRoot) {
+        ReactDOM.createRoot(cartRoot).render(<DCCartDrawer/>);
+      }
+    }, 100);
+  }
 
-    // Render header with cart drawer
-    const headerRoot = document.getElementById('header');
-    if (headerRoot) {
-      console.log('📍 Rendering header...');
-      ReactDOM.createRoot(headerRoot).render(
-        <>
-          <DCHeader activeIndex={0} />
-          <div id="cart-drawer-root" style={{display: 'contents'}}></div>
-        </>
-      );
-
-      setTimeout(() => {
-        const cartRoot = document.getElementById('cart-drawer-root');
-        if (cartRoot) {
-          console.log('📍 Rendering cart drawer...');
-          ReactDOM.createRoot(cartRoot).render(<DCCartDrawer/>);
-        }
-      }, 100);
-    }
-
-    // Render checkout content
-    console.log('📍 Rendering CheckoutPage...');
-    console.log('   - CheckoutPage available:', typeof CheckoutPage);
-    console.log('   - CartManager available:', typeof window.CartManager);
-    console.log('   - DCCheckoutForm available:', typeof window.DCCheckoutForm);
-
-    try {
-      ReactDOM.createRoot(document.getElementById('checkout-content')).render(
-        <CheckoutPage />
-      );
-      console.log('✅ CheckoutPage rendered successfully');
-    } catch (err) {
-      console.error('❌ Error rendering CheckoutPage:', err);
-    }
-  }, 2000);
+  // Render checkout content
+  ReactDOM.createRoot(document.getElementById('checkout-content')).render(
+    <CheckoutPage />
+  );
 </script>
 </body>
 </html>

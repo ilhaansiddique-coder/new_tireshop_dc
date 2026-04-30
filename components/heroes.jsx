@@ -45,6 +45,34 @@ function HeroStats({ items }) {
 
 /* ── Variant 1: classic light "allt under ett tak" ── */
 function HeroV1() {
+  const handleSearch = async (plate) => {
+    console.log('🔍 HeroV1 search triggered for plate:', plate);
+    window.dcSearchLoading = true;
+    window.dispatchEvent(new CustomEvent('search-updated'));
+
+    try {
+      const response = await fetch(`/api/products?plate=${encodeURIComponent(plate.toUpperCase())}`);
+      const data = await response.json();
+
+      window.dcSearchResults = {
+        car: data.car || null,
+        products: data.products || [],
+        loading: false
+      };
+      console.log('✅ Search results updated:', window.dcSearchResults);
+      window.dispatchEvent(new CustomEvent('search-updated'));
+    } catch (err) {
+      console.error('❌ Search error:', err);
+      window.dcSearchResults = {
+        car: null,
+        products: [],
+        error: err.message,
+        loading: false
+      };
+      window.dispatchEvent(new CustomEvent('search-updated'));
+    }
+  };
+
   return (
     <section className="hero" data-variant="1">
       <div className="container hero-grid">
@@ -67,7 +95,12 @@ function HeroV1() {
             <a href="#boka" className="btn btn-accent">Boka tid <span className="arrow"><IconArrow size={16}/></span></a>
             <a href="#tjanster" className="btn btn-ghost">Se tjänster</a>
           </div>
-          <DCRegSearch label="Sök på regnummer (valfritt)" help="Hitta däck och fälg som passar exakt din bil."/>
+          <DCRegSearch
+            label="Sök på regnummer (valfritt)"
+            help="Hitta däck och fälg som passar exakt din bil."
+            onSearch={handleSearch}
+          />
+
           <div style={{height: 36}}/>
           <HeroStats items={[
             { num: <CountUp to={32} suffix=" år"/>, label: "i branschen" },
@@ -115,8 +148,19 @@ function HeroV2() {
             <a href="#boka" className="btn btn-accent">Boka tid nu <span className="arrow"><IconArrow size={16}/></span></a>
             <a href="#tjanster" className="btn btn-ghost">Våra tjänster</a>
           </div>
-          <DCRegSearch label="Sök på regnummer" dark
-            help="Visar däck och fälg som passar din bil."/>
+          <DCRegSearch
+            label="Sök på regnummer"
+            dark
+            help="Visar däck och fälg som passar din bil."
+            onSearch={async (plate) => {
+              const response = await fetch(`/api/products?plate=${encodeURIComponent(plate.toUpperCase())}`);
+              const data = await response.json();
+              if (data.products) {
+                window.searchResults = { car: data.car, products: data.products };
+                window.dispatchEvent(new CustomEvent('search-results-updated'));
+              }
+            }}
+          />
           <div style={{height: 36}}/>
           <HeroStats items={[
             { num: <CountUp to={20} suffix=" min"/>, label: "från E4" },
@@ -169,7 +213,15 @@ function HeroV3() {
           <div>
             <div className="img" style={{aspectRatio:"3/4"}}>FOTO · Däck</div>
             <div style={{height: 24}}/>
-            <DCRegSearch label="Sök regnummer" help="Hitta produkter som passar din bil."/>
+            <DCRegSearch
+              label="Sök regnummer"
+              help="Hitta produkter som passar din bil."
+              onSearch={(plate) => {
+                if (plate.trim()) {
+                  window.location.href = `/shop.html?plate=${encodeURIComponent(plate.toUpperCase())}`;
+                }
+              }}
+            />
           </div>
         </div>
       </div>
