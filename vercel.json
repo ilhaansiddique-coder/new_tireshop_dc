@@ -1,4 +1,26 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/checkout",
+      "destination": "/checkout.html"
+    },
+    {
+      "source": "/om-oss",
+      "destination": "/om-oss.html"
+    },
+    {
+      "source": "/dackhotell",
+      "destination": "/dackhotell.html"
+    },
+    {
+      "source": "/tjanst-:service",
+      "destination": "/tjanst-:service.html"
+    }
+  ]
 }
