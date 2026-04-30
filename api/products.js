@@ -82,7 +82,7 @@ async function searchProductsBySize(width, ratio, diameter, typeId = null, brand
   if (typeId) params.append('typeId', typeId);
   if (brandId) params.append('brand', brandId);
 
-  const res = await fetch(`${EONTYRE_API}/webshop/products?${params}`, {
+  const res = await fetch(`${EONTYRE_API}/api/webshop/product?${params}`, {
     headers: { 'Api-Key': API_KEY }
   });
 
