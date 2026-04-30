@@ -301,6 +301,12 @@ app.post("/api/vehicle", async (req, res) => {
       }
     });
 
+    if (!response.ok) {
+      return res.status(404).json({
+        error: `Car registration "${plate}" not found in EonTyre database`
+      });
+    }
+
     const carData = await response.json();
     const car = carData.data;
 
