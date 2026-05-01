@@ -28,6 +28,7 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
     };
   });
 
+  const [deliveryOption, setDeliveryOption] = useState('0');
   const [errors, setErrors] = useState({});
 
   const translations = {
@@ -144,7 +145,6 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
 
     // Trigger shipping query when postal code is entered
     if (name === 'postal_code' && value.length >= 5 && onPostalCodeChange) {
-      const deliveryOption = document.querySelector('input[name="delivery"]:checked')?.value || '1';
       onPostalCodeChange(value, formData.city, formData.address1, deliveryOption);
     }
   };
@@ -209,7 +209,6 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
       window.CartManager?.saveCustomer?.(customerData);
     }
 
-    const deliveryOption = document.querySelector('input[name="delivery"]:checked')?.value || '1';
     console.log('📤 Calling onSubmit with customer data:', customerData, 'delivery:', deliveryOption);
     try {
       onSubmit(customerData, deliveryOption);
@@ -456,20 +455,37 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
       {/* Delivery Options */}
       <fieldset className="form-section">
         <legend>{t.deliveryOptions}</legend>
-        <label className="radio-label">
+        <label className="radio-label" style={{ cursor: 'pointer' }}>
           <input
             type="radio"
             name="delivery"
             value="0"
-            defaultChecked
+            checked={deliveryOption === '0'}
+            onChange={(e) => {
+              console.log('🚚 Delivery option changed to:', e.target.value);
+              setDeliveryOption(e.target.value);
+              if (formData.postal_code && formData.postal_code.length >= 5 && onPostalCodeChange) {
+                onPostalCodeChange(formData.postal_code, formData.city, formData.address1, e.target.value);
+              }
+            }}
+            style={{ cursor: 'pointer' }}
           />
           {t.pickup} {lang === 'sv' ? '(Värkstad)' : '(Workshop)'}
         </label>
-        <label className="radio-label">
+        <label className="radio-label" style={{ cursor: 'pointer' }}>
           <input
             type="radio"
             name="delivery"
             value="1"
+            checked={deliveryOption === '1'}
+            onChange={(e) => {
+              console.log('🚚 Delivery option changed to:', e.target.value);
+              setDeliveryOption(e.target.value);
+              if (formData.postal_code && formData.postal_code.length >= 5 && onPostalCodeChange) {
+                onPostalCodeChange(formData.postal_code, formData.city, formData.address1, e.target.value);
+              }
+            }}
+            style={{ cursor: 'pointer' }}
           />
           {lang === 'sv' ? 'Hemleverans' : 'Home Delivery'}
         </label>
