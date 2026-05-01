@@ -159,7 +159,6 @@
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="components/icons.jsx"></script>
 <script type="text/babel" src="components/header.jsx"></script>
-<script type="text/babel" src="components/cart-drawer.jsx"></script>
 <script type="text/babel" src="components/regsearch.jsx"></script>
 <script type="text/babel" src="components/tire-dimension-search.jsx"></script>
 <script type="text/babel" src="components/tire.jsx"></script>
@@ -210,16 +209,5 @@
   }, 500);
 </script>
 
-<!-- Render cart drawer in header -->
-<script type="text/babel">
-  setTimeout(() => {
-    console.log('Rendering cart drawer...');
-    const root = document.getElementById('cart-drawer-root');
-    if (root) {
-      ReactDOM.createRoot(root).render(<DCCartDrawer/>);
-      console.log('✅ Cart drawer rendered');
-    }
-  }, 2500); // Wait after app renders
-</script>
 </body>
 </html>
