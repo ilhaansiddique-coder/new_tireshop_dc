@@ -95,13 +95,29 @@ async function searchProductsBySize(width, ratio, diameter, typeId = null, brand
     version: '2',
     width,
     aspectRatio: ratio,
-    diameter
+    diameter,
+    typeId: typeId || '1',
+    searchMode: '4',
+    webshopId: '38',
+    limit: '50',
+    minQuantityInStock: '1',
+    showNoimageTyres: '1',
+    showNoimageRims: '1',
+    includeLocations: '1048',
+    vehicleType: 'alla',
+    isElectricVehicle: 'false',
+    isEnforced: 'false',
+    isMCVehicleType: 'false',
+    isRunflat: 'false',
+    isSilence: 'false',
+    isStaggeredFitment: 'true',
+    minimumTestScore: '0',
+    page: '1'
   });
 
-  if (typeId) params.append('typeId', typeId);
-  if (brandId) params.append('brand', brandId);
+  if (brandId) params.append('query', brandId);
 
-  const url = `${EONTYRE_API}/api/webshop/product?${params}`;
+  const url = `${EONTYRE_API}/api/webshop/products?${params}`;
   console.log(`[EonTyre API] Searching products at: ${url}`);
   console.log(`[EonTyre API] Using API Key: ${API_KEY ? 'configured' : 'MISSING'}`);
 
