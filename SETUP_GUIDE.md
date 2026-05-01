@@ -60,7 +60,7 @@ Go to **Settings** → **Environment Variables** and add:
 | Variable | Value |
 |----------|-------|
 | `EONTYRE_API_URL` | `https://p511.eontyre.com` |
-| `EONTYRE_API_KEY` | `b9b77f6e3a2448d58cc289fb6e961c77` |
+| `EONTYRE_API_KEY` | `YOUR_EONTYRE_API_KEY` |
 
 (The KV variables are auto-added in Step 2)
 

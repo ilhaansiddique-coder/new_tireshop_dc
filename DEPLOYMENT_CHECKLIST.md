@@ -27,7 +27,7 @@ In **Settings → Environment Variables**, add:
 
 ```
 BACKEND_API_URL        = https://your-actual-backend.com
-REACT_APP_EONTYRE_API_KEY = b9b77f6e3a2448d58cc289fb6e961c77
+REACT_APP_EONTYRE_API_KEY = YOUR_EONTYRE_API_KEY
 REACT_APP_DEFAULT_LANG = sv
 ```
 

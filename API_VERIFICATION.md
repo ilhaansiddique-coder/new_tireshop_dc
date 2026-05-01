@@ -12,7 +12,7 @@
 ```env
 BACKEND_API_URL=http://127.0.0.1:4000
 INTERNAL_API_URL=http://127.0.0.1:4000
-REACT_APP_EONTYRE_API_KEY=b9b77f6e3a2448d58cc289fb6e961c77
+REACT_APP_EONTYRE_API_KEY=YOUR_EONTYRE_API_KEY
 REACT_APP_DEFAULT_LANG=sv
 ```
 
@@ -152,7 +152,7 @@ await APITests.runAll()
 
 **Status:** ✅ Active and Configured
 
-- **API Key:** `b9b77f6e3a2448d58cc289fb6e961c77`
+- **API Key:** `YOUR_EONTYRE_API_KEY`
 - **Passed as:** HTTP Header `Api-Key`
 - **Fallback:** URL parameter `apiKey` (if header fails)
 - **Server Configuration:** Automatic (handled by `lib/api.js`)
@@ -280,7 +280,7 @@ console.error('API error:', error);
 
 ### For API Issues:
 - **EONTYRE Support:** [contact form]
-- **API Key:** b9b77f6e3a2448d58cc289fb6e961c77
+- **API Key:** YOUR_EONTYRE_API_KEY
 - **Backend:** http://127.0.0.1:4000
 
 ### For Frontend Issues:

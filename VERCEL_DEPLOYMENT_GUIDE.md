@@ -57,13 +57,13 @@ vercel
 | Variable | Value | Where to Get |
 |----------|-------|-------------|
 | `BACKEND_API_URL` | `https://your-backend-domain.com` | Your actual backend server URL |
-| `REACT_APP_EONTYRE_API_KEY` | `b9b77f6e3a2448d58cc289fb6e961c77` | From EONTYRE support |
+| `REACT_APP_EONTYRE_API_KEY` | `YOUR_EONTYRE_API_KEY` | From EONTYRE support |
 | `REACT_APP_DEFAULT_LANG` | `sv` | Language preference (sv or en) |
 
 ### Example:
 ```
 BACKEND_API_URL = https://api.eontyre.com
-REACT_APP_EONTYRE_API_KEY = b9b77f6e3a2448d58cc289fb6e961c77
+REACT_APP_EONTYRE_API_KEY = YOUR_EONTYRE_API_KEY
 REACT_APP_DEFAULT_LANG = sv
 ```
 
