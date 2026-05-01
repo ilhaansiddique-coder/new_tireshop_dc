@@ -5,6 +5,16 @@
   font-size: 13px;
   font-weight: 400;
   letter-spacing: .002em;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease;
+  transform: translateY(0);
+  opacity: 1;
+  position: relative;
+  z-index: 99;
+}
+.topbar.hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 .topbar-inner {
   display: flex;
