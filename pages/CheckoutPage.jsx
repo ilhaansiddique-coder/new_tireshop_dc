@@ -244,17 +244,20 @@ function CheckoutPage() {
       <div style={{ textAlign: 'center', padding: '60px 20px' }}>
         <h2>{t.emptyCart}</h2>
         <p>{t.emptyDesc}</p>
-        <a href="/" style={{
+        <button onClick={() => window.location.href = '/'} style={{
           display: 'inline-block',
           padding: '12px 24px',
           background: 'var(--color-accent, #10b981)',
           color: 'white',
           textDecoration: 'none',
           borderRadius: '6px',
-          fontWeight: '600'
+          fontWeight: '600',
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: '16px'
         }}>
           {t.continueShopping}
-        </a>
+        </button>
       </div>
     );
   }
