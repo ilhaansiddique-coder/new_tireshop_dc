@@ -498,6 +498,34 @@ app.get("/api/bookings", (req, res) => {
 // Qliro Payment Routes
 // ============================================================================
 
+// GET /api/qliro/test — Test Qliro configuration (for debugging)
+app.get("/api/qliro/test", (req, res) => {
+  try {
+    const mockMode = !QLIRO_API_KEY || !QLIRO_API_SECRET || QLIRO_API_KEY === "DACKA";
+
+    res.json({
+      status: "ok",
+      environment: {
+        NODE_ENV,
+        QLIRO_API_KEY: QLIRO_API_KEY ? "***" + QLIRO_API_KEY.slice(-4) : "(not set)",
+        QLIRO_API_SECRET: QLIRO_API_SECRET ? "***" + QLIRO_API_SECRET.slice(-4) : "(not set)",
+        QLIRO_API_URL,
+      },
+      mockMode,
+      mockReason: mockMode ?
+        (!QLIRO_API_KEY ? "API Key not set" :
+         !QLIRO_API_SECRET ? "API Secret not set" :
+         QLIRO_API_KEY === "DACKA" ? "Test key DACKA detected (mock mode)" : "Unknown")
+        : "Using real API",
+      message: mockMode ?
+        "✅ Mock mode active - payments will auto-complete in test mode" :
+        "🔌 Real Qliro API configured"
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Helper: Generate Basic Auth header
 function generateBasicAuth(key, secret) {
   return "Basic " + Buffer.from(`${key}:${secret}`).toString("base64");
