@@ -905,7 +905,24 @@ app.post("/api/shipping/query", async (req, res) => {
       return res.json({ services: mockServices });
     }
 
-    res.json({ services });
+    // Filter real API services based on delivery option
+    let filteredServices = services;
+    if (delivery_option === '0') {
+      // Local pickup - only DHL and Schenker
+      filteredServices = services.filter(service => {
+        const carrierLower = (service.carrier || '').toLowerCase();
+        return carrierLower.includes('dhl') || carrierLower.includes('schenker');
+      });
+      console.log(`[Fraktjakt] Filtered to ${filteredServices.length} services for local pickup`);
+
+      // If no matching services, use mock data
+      if (filteredServices.length === 0) {
+        console.log('[Fraktjakt] No matching services for local pickup, using mock data');
+        return res.json({ services: getServices() });
+      }
+    }
+
+    res.json({ services: filteredServices });
   } catch (err) {
     console.error("[Fraktjakt] Error:", err.message);
     // Return filtered fallback on error to keep checkout working
