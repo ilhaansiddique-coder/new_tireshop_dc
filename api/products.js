@@ -37,13 +37,14 @@ function normalizeProductsResponse(data) {
   }
 
   return products.map(p => {
-    const brandName = (p.brand || '').toUpperCase().trim();
+    const brandObj = p.brand;
+    const brandName = typeof brandObj === 'object' ? (brandObj?.name || '') : (brandObj || '');
     const brandLogoUrl = `https://logo.clearbit.com/${brandName.toLowerCase()}.com`;
 
     return {
-      id: p.id,
+      id: p.id || p.productId,
       name: p.name,
-      brand: p.brand,
+      brand: brandName,
       dimension: p.dimension,
       width: p.width,
       aspectRatio: p.aspect_ratio || p.aspectRatio,
@@ -53,7 +54,7 @@ function normalizeProductsResponse(data) {
       price: p.price,
       priceFormatted: new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' }).format((p.price || 0) / 100),
       stock: p.stock || p.quantity_in_stock || 0,
-      image: p.image_url || p.image || brandLogoUrl,
+      image: p.image?.webshop_thumb || p.image_url || p.image || brandLogoUrl,
       supplier_id: p.supplier_id,
       location_id: p.location_id,
       sku: p.sku
