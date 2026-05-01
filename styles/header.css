@@ -1,5 +1,8 @@
 /* ── Top utility bar ── */
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 101;
   background: var(--topbar-bg);
   color: var(--topbar-fg);
   font-size: 13px;
@@ -101,7 +104,7 @@
 /* ── Header (white) ── */
 .header {
   position: sticky;
-  top: 0;
+  top: 38px;
   z-index: 100;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
