@@ -811,11 +811,14 @@ app.post("/api/shipping/query", async (req, res) => {
   try {
     const { postal_code, city, address1, items, delivery_option } = req.body;
 
+    console.log(`[Shipping] Request received - postal_code: ${postal_code}, items: ${items?.length || 0}`);
+
     if (!postal_code || !items || items.length === 0) {
+      console.log(`[Shipping] Invalid request - missing postal_code or items`);
       return res.status(400).json({ error: "postal_code and items required" });
     }
 
-    console.log(`[Fraktjakt] Query for: ${address1}, ${postal_code} ${city}, delivery: ${delivery_option}`);
+    console.log(`[Shipping] Query for: ${address1}, ${postal_code} ${city}, delivery: ${delivery_option}`);
 
     // Filter services based on delivery option
     const getServices = () => {

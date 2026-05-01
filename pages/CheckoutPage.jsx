@@ -93,7 +93,7 @@ function CheckoutPage() {
 
     setShippingLoading(true);
     try {
-      console.log('🚚 Querying shipping options...', { deliveryOption });
+      console.log('🚚 Querying shipping options...', { postalCode, city, deliveryOption });
       const response = await fetch('/api/shipping/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -106,9 +106,15 @@ function CheckoutPage() {
         })
       });
 
-      if (!response.ok) throw new Error('Shipping query failed');
+      console.log('🚚 Response status:', response.status, response.statusText);
 
       const data = await response.json();
+      console.log('🚚 Response data:', data);
+
+      if (!response.ok) {
+        throw new Error(`Shipping query failed: ${response.status} ${response.statusText}`);
+      }
+
       console.log('🚚 Shipping options:', data.services?.length || 0);
       setShippingOptions(data.services || []);
 
@@ -119,6 +125,17 @@ function CheckoutPage() {
       }
     } catch (err) {
       console.error('🚚 Error querying shipping:', err);
+      // Use fallback shipping options on error
+      const fallbackOptions = [
+        { id: 'postnord', name: 'PostNord Varubrev', price: 49, delivery_time: '2-3 dagar' },
+        { id: 'dhl', name: 'DHL Paket', price: 99, delivery_time: '1-2 dagar' },
+        { id: 'bring', name: 'Bring Express', price: 129, delivery_time: '1 dag' }
+      ];
+      setShippingOptions(fallbackOptions);
+      if (fallbackOptions.length > 0) {
+        setSelectedShipping(fallbackOptions[0]);
+        updateShippingDisplay(fallbackOptions[0]);
+      }
     } finally {
       setShippingLoading(false);
     }
