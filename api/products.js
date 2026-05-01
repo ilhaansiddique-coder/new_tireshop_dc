@@ -106,47 +106,35 @@ async function searchProductsBySize(width, ratio, diameter, typeId = null, brand
     typeId: typeId || '1',
     searchMode: '4',
     webshopId: '38',
-    limit: '50',
-    minQuantityInStock: '1',
-    showNoimageTyres: '1',
-    showNoimageRims: '1',
-    includeLocations: '1048',
-    vehicleType: 'alla',
-    isElectricVehicle: 'false',
-    isEnforced: 'false',
-    isMCVehicleType: 'false',
-    isRunflat: 'false',
-    isSilence: 'false',
-    isStaggeredFitment: 'true',
-    minimumTestScore: '0',
+    limit: '100',
     page: '1'
   });
 
   if (brandId) params.append('query', brandId);
 
   const url = `${EONTYRE_API}/api/webshop/products?${params}`;
-  console.log(`[EonTyre API] Searching products at: ${url}`);
-  console.log(`[EonTyre API] Using API Key: ${API_KEY ? 'configured' : 'MISSING'}`);
+  console.log(`[EonTyre API] Searching at: ${EONTYRE_API}/api/webshop/products`);
+  console.log(`[EonTyre API] Params: width=${width}, ratio=${ratio}, diameter=${diameter}`);
+  console.log(`[EonTyre API] Using API Key: ${API_KEY ? 'yes' : 'MISSING'}`);
 
   try {
     const res = await fetch(url, {
-      headers: { 'Api-Key': API_KEY },
-      timeout: 10000
+      headers: { 'Api-Key': API_KEY }
     });
 
     console.log(`[EonTyre API] Response status: ${res.status}`);
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error(`[EonTyre API] Error response: ${errorText.substring(0, 200)}`);
+      console.error(`[EonTyre API] Error (${res.status}): ${errorText.substring(0, 300)}`);
       throw new Error(`Product search failed: ${res.status}`);
     }
 
     const data = await res.json();
-    console.log(`[EonTyre API] Found ${Array.isArray(data) ? data.length : data.data?.length || 0} products`);
+    console.log(`[EonTyre API] Raw response keys: ${Object.keys(data).join(', ')}`);
     return data;
   } catch (err) {
-    console.error(`[EonTyre API] Fetch error: ${err.message}`);
+    console.error(`[EonTyre API] Fetch failed: ${err.message}`);
     throw err;
   }
 }
