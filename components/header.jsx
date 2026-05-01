@@ -194,6 +194,7 @@ function Header({ activeIndex = 0 }) {
         <div className="header-right">
           <button className="icon-btn" aria-label={searchAriaLabel}><IconSearch/></button>
           <button className="icon-btn" aria-label={accountAriaLabel}><IconUser/></button>
+          <div id="mini-cart-root" style={{display: 'contents'}}></div>
           <a href="#boka" className="book-btn">{bookButtonText}</a>
         </div>
       </div>

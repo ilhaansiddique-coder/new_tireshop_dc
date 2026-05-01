@@ -5,8 +5,8 @@
 
 .hero {
   position: relative;
-  padding-top: 64px;
-  padding-bottom: var(--pad-section);
+  padding-top: 32px;
+  padding-bottom: 48px;
   overflow: hidden;
 }
 
@@ -63,7 +63,7 @@
   letter-spacing: -.04em;
   line-height: .96;
   font-weight: 650;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .hero h1 .ink { color: var(--ink); }
 .hero h1 .accent { color: var(--accent-strong); }

@@ -159,6 +159,7 @@
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="components/icons.jsx"></script>
 <script type="text/babel" src="components/header.jsx"></script>
+<script type="text/babel" src="components/mini-cart.jsx"></script>
 <script type="text/babel" src="components/regsearch.jsx"></script>
 <script type="text/babel" src="components/tire-dimension-search.jsx"></script>
 <script type="text/babel" src="components/tire.jsx"></script>
@@ -185,6 +186,18 @@
       console.error('❌ Test error:', e);
     }
   }, 3000); // Check after app has rendered
+</script>
+
+<!-- Render mini cart in header -->
+<script type="text/babel">
+  setTimeout(() => {
+    console.log('Rendering mini cart...');
+    const root = document.getElementById('mini-cart-root');
+    if (root) {
+      ReactDOM.createRoot(root).render(<DCMiniCart/>);
+      console.log('✅ Mini cart rendered');
+    }
+  }, 2500);
 </script>
 
 <!-- Diagnostic script -->
