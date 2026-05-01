@@ -362,7 +362,74 @@
 .subbanner-pill .arrow { transition: transform var(--t-fast); }
 .subbanner-pill:hover .arrow { transform: translateX(3px); }
 
-/* small screens — collapse nav (still visible for desktop frame) */
+/* Responsive Design */
+
+/* Tablets and smaller desktops */
 @media (max-width: 1100px) {
   .nav { display: none; }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .topbar {
+    display: none;
+  }
+
+  .header-inner {
+    padding: 12px 16px !important;
+  }
+
+  .brand-logo {
+    font-size: 20px !important;
+  }
+
+  .header-right {
+    gap: 12px;
+  }
+
+  .book-btn {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+  }
+
+  .icon-btn {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .header-inner {
+    padding: 12px 12px !important;
+  }
+
+  .brand {
+    flex: 1;
+  }
+
+  .brand-logo {
+    font-size: 18px !important;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .book-btn {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+
+  .icon-btn {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .cart-badge {
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+  }
 }
