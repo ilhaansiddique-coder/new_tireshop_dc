@@ -144,7 +144,8 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
 
     // Trigger shipping query when postal code is entered
     if (name === 'postal_code' && value.length >= 5 && onPostalCodeChange) {
-      onPostalCodeChange(value, formData.city, formData.address1);
+      const deliveryOption = document.querySelector('input[name="delivery"]:checked')?.value || '1';
+      onPostalCodeChange(value, formData.city, formData.address1, deliveryOption);
     }
   };
 
@@ -208,9 +209,10 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
       window.CartManager?.saveCustomer?.(customerData);
     }
 
-    console.log('📤 Calling onSubmit with customer data:', customerData);
+    const deliveryOption = document.querySelector('input[name="delivery"]:checked')?.value || '1';
+    console.log('📤 Calling onSubmit with customer data:', customerData, 'delivery:', deliveryOption);
     try {
-      onSubmit(customerData, 0); // 0 = pickup option
+      onSubmit(customerData, deliveryOption);
     } catch (err) {
       console.error('❌ Error calling onSubmit:', err);
       alert('Fel vid beställning: ' + err.message);
@@ -461,7 +463,15 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
             value="0"
             defaultChecked
           />
-          {t.pickup}
+          {t.pickup} {lang === 'sv' ? '(Värkstad)' : '(Workshop)'}
+        </label>
+        <label className="radio-label">
+          <input
+            type="radio"
+            name="delivery"
+            value="1"
+          />
+          {lang === 'sv' ? 'Hemleverans' : 'Home Delivery'}
         </label>
       </fieldset>
 

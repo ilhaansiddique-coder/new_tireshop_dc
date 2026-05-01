@@ -88,12 +88,12 @@ function CheckoutPage() {
     }).format(priceSek);
   };
 
-  const queryShipping = async (postalCode, city, address1) => {
+  const queryShipping = async (postalCode, city, address1, deliveryOption = '1') => {
     if (!postalCode || postalCode.length < 5) return;
 
     setShippingLoading(true);
     try {
-      console.log('🚚 Querying shipping options...');
+      console.log('🚚 Querying shipping options...', { deliveryOption });
       const response = await fetch('/api/shipping/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,14 +101,15 @@ function CheckoutPage() {
           postal_code: postalCode,
           city: city || '',
           address1: address1 || '',
-          items: cart.items
+          items: cart.items,
+          delivery_option: deliveryOption
         })
       });
 
       if (!response.ok) throw new Error('Shipping query failed');
 
       const data = await response.json();
-      console.log('🚚 Shipping options:', data.services.length);
+      console.log('🚚 Shipping options:', data.services?.length || 0);
       setShippingOptions(data.services || []);
 
       // Auto-select first option
@@ -429,8 +430,8 @@ function CheckoutPage() {
               handleCheckoutSubmit(customerData, deliveryOption, selectedShipping);
             }}
             loading={loading}
-            onPostalCodeChange={(postalCode, city, address1) => {
-              queryShipping(postalCode, city, address1);
+            onPostalCodeChange={(postalCode, city, address1, deliveryOption) => {
+              queryShipping(postalCode, city, address1, deliveryOption);
             }}
           />
 

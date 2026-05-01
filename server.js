@@ -738,44 +738,79 @@ app.get("/api/qliro/status/:pendingId", (req, res) => {
 // POST /api/shipping/query — Query available shipping methods
 app.post("/api/shipping/query", async (req, res) => {
   try {
-    const { postal_code, city, address1, items } = req.body;
+    const { postal_code, city, address1, items, delivery_option } = req.body;
 
     if (!postal_code || !items || items.length === 0) {
       return res.status(400).json({ error: "postal_code and items required" });
     }
 
-    console.log(`[Fraktjakt] Query for: ${address1}, ${postal_code} ${city}`);
+    console.log(`[Fraktjakt] Query for: ${address1}, ${postal_code} ${city}, delivery: ${delivery_option}`);
+
+    // Filter services based on delivery option
+    const getServices = () => {
+      if (delivery_option === '0') {
+        // Local pickup - only DHL and Schenker options
+        return [
+          {
+            id: "schenker-parcel-home",
+            name: "Schenker Parcel Home",
+            carrier: "Schenker",
+            price: 89,
+            currency: "SEK",
+            delivery_time: "1-2 dagar",
+          },
+          {
+            id: "dhl-notification",
+            name: "DHL Package with notification (Several package shipping)",
+            carrier: "DHL",
+            price: 99,
+            currency: "SEK",
+            delivery_time: "1-2 dagar",
+          },
+          {
+            id: "dhl-home-delivery",
+            name: "DHL home delivery (Several package shipping)",
+            carrier: "DHL",
+            price: 129,
+            currency: "SEK",
+            delivery_time: "1 dag",
+          },
+        ];
+      } else {
+        // Home delivery - standard options
+        return [
+          {
+            id: "postnord",
+            name: "PostNord Varubrev",
+            carrier: "PostNord",
+            price: 49,
+            currency: "SEK",
+            delivery_time: "2-3 dagar",
+          },
+          {
+            id: "dhl",
+            name: "DHL Paket",
+            carrier: "DHL",
+            price: 99,
+            currency: "SEK",
+            delivery_time: "1-2 dagar",
+          },
+          {
+            id: "bring",
+            name: "Bring Express",
+            carrier: "Bring",
+            price: 129,
+            currency: "SEK",
+            delivery_time: "1 dag",
+          },
+        ];
+      }
+    };
 
     // Mock mode - return test shipping options
     if (!FRAKTJAKT_ID || !FRAKTJAKT_KEY) {
       console.log(`[Fraktjakt] MOCK MODE - no credentials configured`);
-      const mockServices = [
-        {
-          id: "mock-postnord",
-          name: "PostNord Varubrev",
-          carrier: "PostNord",
-          price: 49,
-          currency: "SEK",
-          delivery_time: "2-3 dagar",
-        },
-        {
-          id: "mock-dhl",
-          name: "DHL Paket",
-          carrier: "DHL",
-          price: 99,
-          currency: "SEK",
-          delivery_time: "1-2 dagar",
-        },
-        {
-          id: "mock-schenker",
-          name: "Schenker Express",
-          carrier: "Schenker",
-          price: 149,
-          currency: "SEK",
-          delivery_time: "Nästa dag",
-        },
-      ];
-
+      const mockServices = getServices();
       return res.json({ services: mockServices });
     }
 
@@ -863,26 +898,18 @@ app.post("/api/shipping/query", async (req, res) => {
 
     console.log(`[Fraktjakt] Found ${services.length} shipping services`);
 
-    // If no services found, return mock data as fallback
+    // If no services found, return filtered mock data as fallback
     if (!services || services.length === 0) {
       console.log('[Fraktjakt] No services found, using fallback');
-      const mockServices = [
-        { id: "postnord", name: "PostNord Varubrev", carrier: "PostNord", price: 49, currency: "SEK", delivery_time: "2-3 dagar" },
-        { id: "dhl", name: "DHL Paket", carrier: "DHL", price: 99, currency: "SEK", delivery_time: "1-2 dagar" },
-        { id: "bring", name: "Bring Express", carrier: "Bring", price: 129, currency: "SEK", delivery_time: "1 dag" }
-      ];
+      const mockServices = getServices();
       return res.json({ services: mockServices });
     }
 
     res.json({ services });
   } catch (err) {
     console.error("[Fraktjakt] Error:", err.message);
-    // Return fallback on error to keep checkout working
-    const mockServices = [
-      { id: "postnord", name: "PostNord Varubrev", carrier: "PostNord", price: 49, currency: "SEK", delivery_time: "2-3 dagar" },
-      { id: "dhl", name: "DHL Paket", carrier: "DHL", price: 99, currency: "SEK", delivery_time: "1-2 dagar" },
-      { id: "bring", name: "Bring Express", carrier: "Bring", price: 129, currency: "SEK", delivery_time: "1 dag" }
-    ];
+    // Return filtered fallback on error to keep checkout working
+    const mockServices = getServices();
     res.status(200).json({ services: mockServices });
   }
 });
