@@ -806,202 +806,54 @@ app.get("/api/qliro/status/:pendingId", (req, res) => {
 // Fraktjakt Shipping Routes
 // ============================================================================
 
+// Simple shipping options - always available
+const getShippingOptions = (deliveryOption) => {
+  if (deliveryOption === '0') {
+    return [
+      { id: "schenker", name: "Schenker Parcel Home", price: 89, delivery_time: "1-2 dagar" },
+      { id: "dhl-notification", name: "DHL Package with notification", price: 99, delivery_time: "1-2 dagar" },
+      { id: "dhl-home", name: "DHL home delivery", price: 129, delivery_time: "1 dag" }
+    ];
+  } else {
+    return [
+      { id: "postnord", name: "PostNord Varubrev", price: 49, delivery_time: "2-3 dagar" },
+      { id: "dhl", name: "DHL Paket", price: 99, delivery_time: "1-2 dagar" },
+      { id: "bring", name: "Bring Express", price: 129, delivery_time: "1 dag" }
+    ];
+  }
+};
+
 // POST /api/shipping/query — Query available shipping methods
 app.post("/api/shipping/query", async (req, res) => {
   try {
     const { postal_code, city, address1, items, delivery_option } = req.body;
 
-    console.log(`[Shipping] Request received - postal_code: ${postal_code}, items: ${items?.length || 0}`);
+    console.log(`[Shipping] ✓ Request received`);
+    console.log(`[Shipping]   - postal_code: ${postal_code}`);
+    console.log(`[Shipping]   - items: ${items?.length || 0}`);
+    console.log(`[Shipping]   - delivery_option: ${delivery_option}`);
 
-    if (!postal_code || !items || items.length === 0) {
-      console.log(`[Shipping] Invalid request - missing postal_code or items`);
-      return res.status(400).json({ error: "postal_code and items required" });
+    // Minimal validation
+    if (!postal_code) {
+      console.log(`[Shipping] ✗ Missing postal_code`);
+      return res.status(400).json({ error: "postal_code required" });
     }
 
-    console.log(`[Shipping] Query for: ${address1}, ${postal_code} ${city}, delivery: ${delivery_option}`);
-
-    // Filter services based on delivery option
-    const getServices = () => {
-      if (delivery_option === '0') {
-        // Local pickup - only DHL and Schenker options
-        return [
-          {
-            id: "schenker-parcel-home",
-            name: "Schenker Parcel Home",
-            carrier: "Schenker",
-            price: 89,
-            currency: "SEK",
-            delivery_time: "1-2 dagar",
-          },
-          {
-            id: "dhl-notification",
-            name: "DHL Package with notification (Several package shipping)",
-            carrier: "DHL",
-            price: 99,
-            currency: "SEK",
-            delivery_time: "1-2 dagar",
-          },
-          {
-            id: "dhl-home-delivery",
-            name: "DHL home delivery (Several package shipping)",
-            carrier: "DHL",
-            price: 129,
-            currency: "SEK",
-            delivery_time: "1 dag",
-          },
-        ];
-      } else {
-        // Home delivery - standard options
-        return [
-          {
-            id: "postnord",
-            name: "PostNord Varubrev",
-            carrier: "PostNord",
-            price: 49,
-            currency: "SEK",
-            delivery_time: "2-3 dagar",
-          },
-          {
-            id: "dhl",
-            name: "DHL Paket",
-            carrier: "DHL",
-            price: 99,
-            currency: "SEK",
-            delivery_time: "1-2 dagar",
-          },
-          {
-            id: "bring",
-            name: "Bring Express",
-            carrier: "Bring",
-            price: 129,
-            currency: "SEK",
-            delivery_time: "1 dag",
-          },
-        ];
-      }
-    };
-
-    // Mock mode - return test shipping options
-    if (!FRAKTJAKT_ID || !FRAKTJAKT_KEY) {
-      console.log(`[Fraktjakt] MOCK MODE - no credentials configured`);
-      const mockServices = getServices();
-      return res.json({ services: mockServices });
+    if (!items || items.length === 0) {
+      console.log(`[Shipping] ✗ Missing items`);
+      return res.status(400).json({ error: "items required" });
     }
 
-    // Real Fraktjakt API call (when credentials are configured)
-    console.log(`[Fraktjakt] Querying real API...`);
+    // Return shipping options based on delivery option
+    const services = getShippingOptions(delivery_option || '1');
+    console.log(`[Shipping] ✓ Returning ${services.length} shipping options`);
 
-    // Build Fraktjakt XML payload (API v2 format)
-    const totalWeight = items.reduce((sum, item) => sum + (item.quantity * 8), 0); // 8kg per tire
-    const articleNumber = items[0]?.sku || items[0]?.productId || 'TYRE001';
-
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<fraktjakt api_version="2">
-  <consignor>
-    <id>${FRAKTJAKT_ID}</id>
-    <key>${FRAKTJAKT_KEY}</key>
-  </consignor>
-  <shipment>
-    <address_from>${SHOP_ORIGIN_STREET}</address_from>
-    <zipcode_from>${SHOP_ORIGIN_POSTAL}</zipcode_from>
-    <city_from>${SHOP_ORIGIN_CITY}</city_from>
-    <country_from>SE</country_from>
-    <address_to>${address1}</address_to>
-    <zipcode_to>${postal_code.replace(/\s/g, '')}</zipcode_to>
-    <city_to>${city || ""}</city_to>
-    <country_to>SE</country_to>
-    <parcels>
-      <parcel>
-        <weight>${totalWeight}</weight>
-        <length>63</length>
-        <width>63</width>
-        <height>25</height>
-      </parcel>
-    </parcels>
-    <commodities>
-      <commodity>
-        <description>Tyres</description>
-        <code>40112000</code>
-        <amount>${items.length}</amount>
-        <article_number>${articleNumber}</article_number>
-      </commodity>
-    </commodities>
-  </shipment>
-</fraktjakt>`;
-
-    const encodedXml = encodeURIComponent(xml);
-    const queryUrl = `${FRAKTJAKT_API_URL}/query_xml?xml=${encodedXml}`;
-
-    console.log(`[Fraktjakt] Calling: ${FRAKTJAKT_API_URL}/query_xml`);
-
-    const fraktjaktResponse = await fetch(queryUrl);
-    const responseText = await fraktjaktResponse.text();
-
-    if (!fraktjaktResponse.ok) {
-      console.error(`[Fraktjakt] Query failed: ${fraktjaktResponse.status}`);
-      console.error(`[Fraktjakt] Response: ${responseText.substring(0, 200)}`);
-      throw new Error(`Fraktjakt query failed: ${fraktjaktResponse.status}`);
-    }
-
-    // Parse XML response (simplified - just extract service info)
-    // In production, use a proper XML parser
-    const services = [];
-    const serviceMatches = responseText.match(
-      /<shipping_service[^>]*>.*?<\/shipping_service>/gs
-    );
-
-    if (serviceMatches) {
-      serviceMatches.slice(0, 5).forEach((serviceXml) => {
-        const idMatch = serviceXml.match(/<id>(\d+)<\/id>/);
-        const nameMatch = serviceXml.match(/<name>([^<]+)<\/name>/);
-        const carrierMatch = serviceXml.match(/<carrier_name>([^<]+)<\/carrier_name>/);
-        const priceMatch = serviceXml.match(/<quoted_price>(\d+(?:\.\d{2})?)<\/quoted_price>/);
-
-        if (idMatch && nameMatch && priceMatch) {
-          services.push({
-            id: idMatch[1],
-            name: nameMatch[1],
-            carrier: carrierMatch ? carrierMatch[1] : "Unknown",
-            price: Math.round(parseFloat(priceMatch[1])),
-            currency: "SEK",
-            delivery_time: "Beräknas enligt bud",
-          });
-        }
-      });
-    }
-
-    console.log(`[Fraktjakt] Found ${services.length} shipping services`);
-
-    // If no services found, return filtered mock data as fallback
-    if (!services || services.length === 0) {
-      console.log('[Fraktjakt] No services found, using fallback');
-      const mockServices = getServices();
-      return res.json({ services: mockServices });
-    }
-
-    // Filter real API services based on delivery option
-    let filteredServices = services;
-    if (delivery_option === '0') {
-      // Local pickup - only DHL and Schenker
-      filteredServices = services.filter(service => {
-        const carrierLower = (service.carrier || '').toLowerCase();
-        return carrierLower.includes('dhl') || carrierLower.includes('schenker');
-      });
-      console.log(`[Fraktjakt] Filtered to ${filteredServices.length} services for local pickup`);
-
-      // If no matching services, use mock data
-      if (filteredServices.length === 0) {
-        console.log('[Fraktjakt] No matching services for local pickup, using mock data');
-        return res.json({ services: getServices() });
-      }
-    }
-
-    res.json({ services: filteredServices });
+    return res.json({ services });
   } catch (err) {
-    console.error("[Fraktjakt] Error:", err.message);
-    // Return filtered fallback on error to keep checkout working
-    const mockServices = getServices();
-    res.status(200).json({ services: mockServices });
+    console.error(`[Shipping] ✗ Error:`, err.message);
+    // Always return fallback services on error
+    const fallback = getShippingOptions('1');
+    return res.status(200).json({ services: fallback });
   }
 });
 
