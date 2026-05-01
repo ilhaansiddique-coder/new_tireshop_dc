@@ -17,13 +17,122 @@
     src: local("Arial Black"), local("Helvetica Bold");
     font-weight: 800;
   }
+
+  /* Global Page Loader */
+  #page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #ffffff 0%, #f6f5f1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+  }
+
+  #page-loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* Dark theme loader */
+  [data-theme="dark"] #page-loader {
+    background: linear-gradient(135deg, #0b0b0b 0%, #131313 100%);
+  }
+
+  .loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .loader-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(139, 197, 63, 0.2);
+    border-top-color: #8BC53F;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .loader-text {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #4B4B4B;
+    letter-spacing: 0.5px;
+    animation: pulse-text 1.5s ease-in-out infinite;
+  }
+
+  [data-theme="dark"] .loader-text {
+    color: #B0B0B0;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse-text {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  /* Ensure body doesn't scroll while loading */
+  body.loading-page {
+    overflow: hidden;
+  }
 </style>
 </head>
-<body>
+<body class="loading-page">
 <script>
   console.log('PAGE LOADED AT:', new Date().toISOString());
   window.DEBUG = true;
+
+  // Hide loader when page is ready
+  function hidePageLoader() {
+    const loader = document.getElementById('page-loader');
+    if (loader) {
+      loader.classList.add('hidden');
+      document.body.classList.remove('loading-page');
+    }
+  }
+
+  // Hide loader after min delay to show it was there
+  window.pageLoaderReady = false;
+  setTimeout(() => {
+    window.pageLoaderReady = true;
+    if (document.readyState === 'complete') {
+      hidePageLoader();
+    }
+  }, 800);
+
+  // Hide loader when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.pageLoaderReady) hidePageLoader();
+    });
+  }
+
+  // Hide loader when everything is loaded
+  window.addEventListener('load', () => {
+    if (window.pageLoaderReady) hidePageLoader();
+  });
 </script>
+
+<!-- Page Loader -->
+<div id="page-loader">
+  <div class="loader-content">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Laddar...</div>
+  </div>
+</div>
+
 <div id="root"></div>
 
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -32,6 +141,7 @@
 
 <script src="lib/init-lang.js"></script>
 <script src="lib/cart-manager.js"></script>
+<script src="lib/page-loader.js"></script>
 
 <!-- Error handler before Babel scripts -->
 <script>

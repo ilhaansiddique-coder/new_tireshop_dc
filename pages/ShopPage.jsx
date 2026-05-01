@@ -88,6 +88,13 @@ function ShopPage() {
   }, [lang]);
 
   useEffect(() => {
+    // Hide page loader when ShopPage mounts
+    if (window.hidePageLoader) {
+      window.hidePageLoader();
+    }
+  }, []);
+
+  useEffect(() => {
     // Check for plate in URL query parameter
     const params = new URLSearchParams(window.location.search);
     const plateParam = params.get('plate');
