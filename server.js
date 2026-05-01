@@ -806,8 +806,8 @@ app.get("/api/qliro/status/:pendingId", (req, res) => {
 // Fraktjakt Shipping Routes
 // ============================================================================
 
-// Simple shipping options - always available
-const getShippingOptions = (deliveryOption) => {
+// Fallback shipping options if Fraktjakt fails
+const getFallbackShippingOptions = (deliveryOption) => {
   if (deliveryOption === '0') {
     return [
       { id: "schenker", name: "Schenker Parcel Home", price: 89, delivery_time: "1-2 dagar" },
@@ -823,36 +823,144 @@ const getShippingOptions = (deliveryOption) => {
   }
 };
 
+// Query Fraktjakt API for real shipping options
+const queryFraktjaktAPI = async (postalCode, city, address, items, deliveryOption) => {
+  try {
+    console.log(`[Fraktjakt] 🚚 Querying API for postal code: ${postalCode}`);
+
+    // Build XML payload for Fraktjakt API v2
+    const totalWeight = items.reduce((sum, item) => sum + (item.quantity * 8), 0); // 8kg per tire
+    const articleNumber = items[0]?.sku || items[0]?.productId || 'TYRE001';
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<fraktjakt api_version="2">
+  <consignor>
+    <id>${FRAKTJAKT_ID}</id>
+    <key>${FRAKTJAKT_KEY}</key>
+  </consignor>
+  <shipment>
+    <address_from>${SHOP_ORIGIN_STREET}</address_from>
+    <zipcode_from>${SHOP_ORIGIN_POSTAL}</zipcode_from>
+    <city_from>${SHOP_ORIGIN_CITY}</city_from>
+    <country_from>SE</country_from>
+    <address_to>${address || "Hemadress"}</address_to>
+    <zipcode_to>${postalCode.replace(/\s/g, '')}</zipcode_to>
+    <city_to>${city || ""}</city_to>
+    <country_to>SE</country_to>
+    <parcels>
+      <parcel>
+        <weight>${totalWeight}</weight>
+        <length>63</length>
+        <width>63</width>
+        <height>25</height>
+      </parcel>
+    </parcels>
+    <commodities>
+      <commodity>
+        <description>Tyres</description>
+        <code>40112000</code>
+        <amount>${items.length}</amount>
+        <article_number>${articleNumber}</article_number>
+      </commodity>
+    </commodities>
+  </shipment>
+</fraktjakt>`;
+
+    const encodedXml = encodeURIComponent(xml);
+    const queryUrl = `${FRAKTJAKT_API_URL}/query_xml?xml=${encodedXml}`;
+
+    console.log(`[Fraktjakt] 📡 Calling Fraktjakt API...`);
+    const response = await fetch(queryUrl, { timeout: 10000 });
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      console.error(`[Fraktjakt] ❌ API returned status ${response.status}`);
+      console.error(`[Fraktjakt] Response: ${responseText.substring(0, 300)}`);
+      throw new Error(`Fraktjakt API error: ${response.status}`);
+    }
+
+    // Parse XML response
+    const services = [];
+    const serviceMatches = responseText.match(/<shipping_service[^>]*>.*?<\/shipping_service>/gs) || [];
+
+    console.log(`[Fraktjakt] 📦 Found ${serviceMatches.length} service options in response`);
+
+    serviceMatches.slice(0, 10).forEach((serviceXml, idx) => {
+      try {
+        const idMatch = serviceXml.match(/<id>(\d+)<\/id>/);
+        const nameMatch = serviceXml.match(/<name>([^<]+)<\/name>/);
+        const carrierMatch = serviceXml.match(/<carrier_name>([^<]+)<\/carrier_name>/);
+        const priceMatch = serviceXml.match(/<quoted_price>(\d+(?:\.\d{2})?)<\/quoted_price>/);
+        const deliveryMatch = serviceXml.match(/<delivery_time_description>([^<]+)<\/delivery_time_description>/);
+
+        if (idMatch && nameMatch && priceMatch) {
+          services.push({
+            id: `fraktjakt-${idMatch[1]}`,
+            name: nameMatch[1],
+            carrier: carrierMatch ? carrierMatch[1] : "Unknown",
+            price: Math.round(parseFloat(priceMatch[1])),
+            delivery_time: deliveryMatch ? deliveryMatch[1] : "Beräknas enligt bud"
+          });
+          console.log(`[Fraktjakt] ✓ Service ${idx + 1}: ${nameMatch[1]} - ${Math.round(parseFloat(priceMatch[1]))} kr`);
+        }
+      } catch (e) {
+        console.error(`[Fraktjakt] ⚠️ Error parsing service ${idx}:`, e.message);
+      }
+    });
+
+    if (services.length === 0) {
+      console.warn(`[Fraktjakt] ⚠️ No services parsed from response, using fallback`);
+      return getFallbackShippingOptions(deliveryOption);
+    }
+
+    console.log(`[Fraktjakt] ✅ Successfully retrieved ${services.length} shipping options`);
+    return services;
+  } catch (err) {
+    console.error(`[Fraktjakt] ❌ Error querying API:`, err.message);
+    return getFallbackShippingOptions(deliveryOption);
+  }
+};
+
 // POST /api/shipping/query — Query available shipping methods
 app.post("/api/shipping/query", async (req, res) => {
   try {
     const { postal_code, city, address1, items, delivery_option } = req.body;
 
-    console.log(`[Shipping] ✓ Request received`);
+    console.log(`\n[Shipping] 📥 Request received`);
     console.log(`[Shipping]   - postal_code: ${postal_code}`);
+    console.log(`[Shipping]   - city: ${city}`);
+    console.log(`[Shipping]   - address: ${address1}`);
     console.log(`[Shipping]   - items: ${items?.length || 0}`);
     console.log(`[Shipping]   - delivery_option: ${delivery_option}`);
 
-    // Minimal validation
+    // Validation
     if (!postal_code) {
-      console.log(`[Shipping] ✗ Missing postal_code`);
+      console.log(`[Shipping] ❌ Missing postal_code`);
       return res.status(400).json({ error: "postal_code required" });
     }
 
     if (!items || items.length === 0) {
-      console.log(`[Shipping] ✗ Missing items`);
+      console.log(`[Shipping] ❌ Missing items`);
       return res.status(400).json({ error: "items required" });
     }
 
-    // Return shipping options based on delivery option
-    const services = getShippingOptions(delivery_option || '1');
-    console.log(`[Shipping] ✓ Returning ${services.length} shipping options`);
+    // Check if Fraktjakt credentials are configured
+    if (!FRAKTJAKT_ID || !FRAKTJAKT_KEY) {
+      console.log(`[Shipping] ⚠️ Fraktjakt credentials not configured, using fallback`);
+      const fallback = getFallbackShippingOptions(delivery_option || '1');
+      return res.json({ services: fallback });
+    }
 
+    // Query Fraktjakt API for real shipping options
+    console.log(`[Shipping] 🔄 Querying Fraktjakt API...`);
+    const services = await queryFraktjaktAPI(postal_code, city, address1, items, delivery_option);
+
+    console.log(`[Shipping] ✅ Returning ${services.length} shipping options\n`);
     return res.json({ services });
   } catch (err) {
-    console.error(`[Shipping] ✗ Error:`, err.message);
+    console.error(`[Shipping] ❌ Error:`, err.message);
     // Always return fallback services on error
-    const fallback = getShippingOptions('1');
+    const fallback = getFallbackShippingOptions('1');
     return res.status(200).json({ services: fallback });
   }
 });
