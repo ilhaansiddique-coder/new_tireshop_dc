@@ -457,6 +457,11 @@ function CheckoutPage() {
                     backgroundColor: selectedShipping?.id === option.id ? '#f0fdf4' : 'white',
                     transition: 'all 0.2s',
                     userSelect: 'none'
+                  }} onClick={(e) => {
+                    const input = e.currentTarget.querySelector('input[type="radio"]');
+                    if (input) {
+                      input.click();
+                    }
                   }}>
                     <input
                       type="radio"
@@ -464,10 +469,16 @@ function CheckoutPage() {
                       value={option.id}
                       checked={selectedShipping?.id === option.id}
                       onChange={() => {
+                        console.log('📦 Selected shipping:', option.id, option.name);
                         setSelectedShipping(option);
                         updateShippingDisplay(option);
                       }}
-                      style={{ marginRight: '12px', cursor: 'pointer', accentColor: '#10b981' }}
+                      style={{
+                        marginRight: '12px',
+                        cursor: 'pointer',
+                        accentColor: '#10b981',
+                        pointerEvents: 'auto'
+                      }}
                     />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: '600', color: '#1f2937' }}>
