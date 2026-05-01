@@ -25,13 +25,20 @@ function normalizeCarDataResponse(data) {
 function normalizeProductsResponse(data) {
   let products = [];
 
+  console.log('[EonTyre API] Raw response type:', typeof data);
+  console.log('[EonTyre API] Is Array?', Array.isArray(data));
+  console.log('[EonTyre API] Has .data?', data?.data ? `yes (${data.data.length} items)` : 'no');
+  console.log('[EonTyre API] Has .products?', data?.products ? `yes (${data.products.length} items)` : 'no');
+
   if (Array.isArray(data)) {
     products = data;
-  } else if (data.data && Array.isArray(data.data)) {
+  } else if (data?.data && Array.isArray(data.data)) {
     products = data.data;
-  } else if (data.products && Array.isArray(data.products)) {
+  } else if (data?.products && Array.isArray(data.products)) {
     products = data.products;
   }
+
+  console.log('[EonTyre API] Normalized products count:', products.length);
 
   return products.map(p => {
     const brandName = (p.brand || '').toUpperCase().trim();
@@ -210,7 +217,8 @@ export default async function handler(req, res) {
       });
     }
   } catch (err) {
-    console.error('Product search error:', err);
+    console.error('[Products API] Error:', err.message);
+    console.error('[Products API] Stack:', err.stack);
     res.status(500).json({ error: err.message });
   }
 }
