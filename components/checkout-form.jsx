@@ -629,14 +629,30 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
         .checkbox-label {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 12px;
           cursor: pointer;
           font-weight: 500;
+          padding: 8px 4px;
+          border-radius: 4px;
+          transition: background-color 0.2s;
+          user-select: none;
+          -webkit-user-select: none;
+        }
+
+        .radio-label:hover,
+        .checkbox-label:hover {
+          background-color: rgba(16, 185, 129, 0.05);
         }
 
         input[type="radio"],
         input[type="checkbox"] {
           cursor: pointer;
+          width: 20px;
+          height: 20px;
+          min-width: 20px;
+          min-height: 20px;
+          flex-shrink: 0;
+          accent-color: var(--color-accent, #10b981);
         }
 
         .form-actions {
