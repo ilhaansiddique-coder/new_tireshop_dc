@@ -223,6 +223,8 @@ function MiniCart() {
           background: rgba(0, 0, 0, 0.5);
           z-index: 998;
           animation: fadeIn 0.3s ease;
+          pointer-events: auto;
+          backdrop-filter: blur(0);
         }
 
         @keyframes fadeIn {
@@ -243,10 +245,15 @@ function MiniCart() {
           z-index: 999;
           display: flex;
           flex-direction: column;
-          transition: transform 0.3s ease;
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           transform: translateX(100%);
           overflow: hidden;
-          contain: layout style paint;
+          will-change: transform;
+          pointer-events: none;
+        }
+
+        .cart-drawer.open {
+          pointer-events: auto;
         }
 
         .cart-drawer.open {
