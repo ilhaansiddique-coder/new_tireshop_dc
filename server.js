@@ -547,9 +547,11 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
     const pendingId = uuidv4();
     const callbackToken = uuidv4();
 
-    console.log(`[Qliro] Creating checkout for pendingId: ${pendingId}`);
-    console.log(`[Qliro] Environment: NODE_ENV=${NODE_ENV}`);
-    console.log(`[Qliro] Credentials configured: KEY=${!!QLIRO_API_KEY}, SECRET=${!!QLIRO_API_SECRET}`);
+    console.log(`[Qliro] ========== Creating checkout for ${pendingId} ==========`);
+    console.log(`[Qliro] NODE_ENV: ${NODE_ENV}`);
+    console.log(`[Qliro] QLIRO_API_KEY: ${QLIRO_API_KEY}`);
+    console.log(`[Qliro] QLIRO_API_SECRET: ${QLIRO_API_SECRET ? "***" : "(not set)"}`);
+    console.log(`[Qliro] BASE_URL: ${BASE_URL}`);
 
     // Create Qliro order payload
     const qliroOrder = {
@@ -582,6 +584,7 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
     console.log(`[Qliro] API Key check: "${QLIRO_API_KEY}" === "DACKA" ? ${QLIRO_API_KEY === "DACKA"}`);
 
     if (isMockMode) {
+      console.log(`[Qliro] ✅ ENTERING MOCK MODE`);
       qliroOrderId = `mock-qliro-${pendingId.substring(0, 8)}`;
       iframeSnippet = `
         <div style="border: 2px solid #0ea5e9; padding: 20px; border-radius: 8px; background: #f0f9ff; text-align: center;">
@@ -746,11 +749,19 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
     });
 
     console.log(`[Qliro] Stored pending order: ${pendingId}`);
+    console.log(`[Qliro] Responding with: pendingId=${pendingId}, qliroOrderId=${qliroOrderId}, iframeSnippet length=${iframeSnippet?.length || 0}`);
 
     res.json({ pendingId, qliroOrderId, iframeSnippet });
   } catch (err) {
-    console.error("[Qliro] Error creating checkout:", err.message);
-    res.status(500).json({ error: err.message });
+    console.error("[Qliro] ❌ ERROR creating checkout!");
+    console.error("[Qliro] Error message:", err.message);
+    console.error("[Qliro] Error stack:", err.stack);
+    console.error("[Qliro] Full error:", err);
+    res.status(500).json({
+      error: err.message,
+      details: err.stack,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
