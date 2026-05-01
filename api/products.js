@@ -62,13 +62,32 @@ async function lookupCarByPlate(plate) {
   const cleanPlate = (plate || '').replace(/[^A-Z0-9]/g, '').toUpperCase();
   if (!cleanPlate) throw new Error('Invalid plate');
 
-  const res = await fetch(`${EONTYRE_API}/api/webshop/cars/${cleanPlate}`, {
-    method: 'POST',
-    headers: { 'Api-Key': API_KEY }
-  });
+  const url = `${EONTYRE_API}/api/webshop/cars/${cleanPlate}`;
+  console.log(`[EonTyre API] Looking up car plate: ${cleanPlate} at ${url}`);
+  console.log(`[EonTyre API] Using API Key: ${API_KEY ? 'configured' : 'MISSING'}`);
 
-  if (!res.ok) throw new Error(`Car lookup failed: ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Api-Key': API_KEY },
+      timeout: 10000
+    });
+
+    console.log(`[EonTyre API] Car lookup response status: ${res.status}`);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[EonTyre API] Car lookup error: ${errorText.substring(0, 200)}`);
+      throw new Error(`Car lookup failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+    console.log(`[EonTyre API] Car found: ${data?.make} ${data?.model}`);
+    return data;
+  } catch (err) {
+    console.error(`[EonTyre API] Car lookup fetch error: ${err.message}`);
+    throw err;
+  }
 }
 
 async function searchProductsBySize(width, ratio, diameter, typeId = null, brandId = null) {
@@ -82,12 +101,31 @@ async function searchProductsBySize(width, ratio, diameter, typeId = null, brand
   if (typeId) params.append('typeId', typeId);
   if (brandId) params.append('brand', brandId);
 
-  const res = await fetch(`${EONTYRE_API}/api/webshop/product?${params}`, {
-    headers: { 'Api-Key': API_KEY }
-  });
+  const url = `${EONTYRE_API}/api/webshop/product?${params}`;
+  console.log(`[EonTyre API] Searching products at: ${url}`);
+  console.log(`[EonTyre API] Using API Key: ${API_KEY ? 'configured' : 'MISSING'}`);
 
-  if (!res.ok) throw new Error(`Product search failed: ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(url, {
+      headers: { 'Api-Key': API_KEY },
+      timeout: 10000
+    });
+
+    console.log(`[EonTyre API] Response status: ${res.status}`);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[EonTyre API] Error response: ${errorText.substring(0, 200)}`);
+      throw new Error(`Product search failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+    console.log(`[EonTyre API] Found ${Array.isArray(data) ? data.length : data.data?.length || 0} products`);
+    return data;
+  } catch (err) {
+    console.error(`[EonTyre API] Fetch error: ${err.message}`);
+    throw err;
+  }
 }
 
 export default async function handler(req, res) {
