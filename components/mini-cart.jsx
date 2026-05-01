@@ -90,10 +90,12 @@ function MiniCart() {
             <>
               {/* Items List */}
               <div className="cart-items">
-                {cart.items.map((item, idx) => (
+                {cart.items.map((item, idx) => {
+                  const imgSrc = typeof item.image === 'string' ? item.image : (item.image?.webshop_thumb || item.image?.thumbnail || item.image?.original);
+                  return (
                   <div key={idx} className="cart-item">
-                    {item.image && (
-                      <img src={item.image} alt={item.name} className="cart-item-image" />
+                    {imgSrc && (
+                      <img src={imgSrc} alt={item.name} className="cart-item-image" onError={(e) => { e.target.style.display = 'none'; }} />
                     )}
 
                     <div className="cart-item-details">
@@ -133,7 +135,8 @@ function MiniCart() {
                       </button>
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
 
               {/* Totals */}
