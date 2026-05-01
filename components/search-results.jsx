@@ -47,7 +47,7 @@ function SearchResults() {
     }
   };
 
-  if (!results || (!results.car && results.products.length === 0)) {
+  if (!results || (!results.car && !results.dimension && results.products.length === 0)) {
     return null;
   }
 
@@ -65,6 +65,13 @@ function SearchResults() {
         {results.car && (
           <div className="car-info-card">
             ✅ <strong>{results.car.make} {results.car.model}</strong> ({results.car.year}) · {results.car.tireDimension}
+          </div>
+        )}
+
+        {/* Dimension Info */}
+        {results.dimension && (
+          <div className="car-info-card">
+            ✅ <strong>Däckdimension:</strong> {results.dimension}
           </div>
         )}
 

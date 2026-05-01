@@ -434,6 +434,16 @@
   to { transform: rotate(360deg); }
 }
 
+.regsearch-error {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(197, 57, 46, .08);
+  color: var(--danger);
+  font-size: 13px;
+  border: 1px solid var(--danger);
+}
+
 .regsearch-help {
   margin-top: 14px;
   display: flex;
@@ -451,6 +461,115 @@
 }
 .hero[data-variant="2"] .regsearch-label { background: var(--surface-dark); color: rgba(255,255,255,.6); }
 .hero[data-variant="2"] .regsearch-help { color: rgba(255,255,255,.55); }
+
+/* ───────────────────────────
+   Tire Dimension Search
+   ─────────────────────────── */
+.tire-dimension-search {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.tire-search-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.tire-dimension-input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 500;
+  transition: border var(--t-fast), background var(--t-fast);
+}
+.tire-dimension-input::placeholder { color: var(--ink-4); }
+.tire-dimension-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-alt);
+}
+
+.tire-search-cta {
+  margin-left: 0;
+  flex-shrink: 0;
+  padding: 12px 18px;
+  border-radius: var(--r-sm);
+  background: var(--surface-dark);
+  color: var(--surface-dark-fg);
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background var(--t-med), color var(--t-med), opacity var(--t-med);
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+.tire-search-cta:hover:not(:disabled) { background: var(--accent); color: var(--accent-ink); }
+.tire-search-cta:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.tire-search-cta .arrow { transition: transform var(--t-fast); }
+.tire-search-cta:hover:not(:disabled) .arrow { transform: translateX(3px); }
+.tire-search-cta .spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+
+.tire-search-error {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(197, 57, 46, .08);
+  color: var(--danger);
+  font-size: 13px;
+  border: 1px solid var(--danger);
+}
+
+.tire-search-help {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-4);
+}
+.tire-search-help svg { color: var(--ink-4); }
+
+/* dark hero variant adapt */
+.hero[data-variant="2"] .tire-dimension-search {
+  margin-top: 28px;
+}
+.hero[data-variant="2"] .tire-dimension-input {
+  background: rgba(255,255,255,.05);
+  border-color: rgba(255,255,255,.18);
+  color: rgba(255,255,255,.95);
+}
+.hero[data-variant="2"] .tire-dimension-input::placeholder { color: rgba(255,255,255,.4); }
+.hero[data-variant="2"] .tire-dimension-input:focus {
+  background: rgba(255,255,255,.08);
+  border-color: var(--accent);
+}
+.hero[data-variant="2"] .tire-search-help { color: rgba(255,255,255,.55); }
 
 
 /* ───────────────────────────

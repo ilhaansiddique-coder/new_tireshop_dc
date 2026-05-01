@@ -66,6 +66,8 @@ function ShopPage() {
   const [width, setWidth] = useState('');
   const [ratio, setRatio] = useState('');
   const [diameter, setDiameter] = useState('');
+  const [dimension, setDimension] = useState('');
+  const [useDimensionString, setUseDimensionString] = useState(false);
 
   useEffect(() => {
     const handleLanguageChange = () => {
@@ -130,6 +132,23 @@ function ShopPage() {
     }
   };
 
+  const parseDimension = (input) => {
+    if (!input || !input.trim()) return null;
+    const cleaned = input.replace(/\s+/g, '').toUpperCase();
+    const patterns = [
+      /^(\d+)\/(\d+)\s*[Rr](\d+)$/, // 225/50 R16
+      /^(\d+)\/(\d+)\/(\d+)$/, // 225/50/16
+      /^(\d+)-(\d+)-(\d+)$/, // 225-50-16
+    ];
+    for (const pattern of patterns) {
+      const match = cleaned.match(pattern);
+      if (match) {
+        return { width: match[1], ratio: match[2], diameter: match[3] };
+      }
+    }
+    return null;
+  };
+
   const performManualSearch = async (e) => {
     e.preventDefault();
     if (!width || !ratio || !diameter) return;
@@ -152,6 +171,43 @@ function ShopPage() {
       if (data.products && data.products.length > 0) {
         setProducts(data.products);
         setShowManualSearch(false);
+      } else {
+        setError(translations[lang].no_tires);
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      setError(err.message || translations[lang].error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const performDimensionSearch = async (e) => {
+    e.preventDefault();
+    const parsed = parseDimension(dimension);
+    if (!parsed) {
+      setError(lang === 'sv' ? 'Ogiltig format. Använd t.ex. 225/50 R16' : 'Invalid format. Use e.g. 225/50 R16');
+      return;
+    }
+
+    setSearchLoading(true);
+    setError(null);
+    setProducts([]);
+
+    try {
+      const response = await fetch(
+        `/api/products?width=${encodeURIComponent(parsed.width)}&ratio=${encodeURIComponent(parsed.ratio)}&diameter=${encodeURIComponent(parsed.diameter)}`
+      );
+
+      if (!response.ok) {
+        throw new Error(translations[lang].error);
+      }
+
+      const data = await response.json();
+
+      if (data.products && data.products.length > 0) {
+        setProducts(data.products);
+        setUseDimensionString(false);
       } else {
         setError(translations[lang].no_tires);
       }
@@ -325,85 +381,146 @@ function ShopPage() {
           borderRadius: '12px',
           marginBottom: '40px'
         }}>
-          <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '18px', fontWeight: '600' }}>
-            {t.manual_search}
-          </h3>
-          <form onSubmit={performManualSearch} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', alignItems: 'flex-end' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
-                {t.tire_width}
-              </label>
-              <input
-                type="text"
-                placeholder="205"
-                value={width}
-                onChange={(e) => setWidth(e.target.value)}
-                style={{
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
-                {t.tire_ratio}
-              </label>
-              <input
-                type="text"
-                placeholder="55"
-                value={ratio}
-                onChange={(e) => setRatio(e.target.value)}
-                style={{
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
-                {t.tire_diameter}
-              </label>
-              <input
-                type="text"
-                placeholder="16"
-                value={diameter}
-                onChange={(e) => setDiameter(e.target.value)}
-                style={{
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
-              />
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: '18px', fontWeight: '600' }}>
+              {t.manual_search}
+            </h3>
             <button
-              type="submit"
-              disabled={searchLoading || !width || !ratio || !diameter}
+              type="button"
+              onClick={() => setUseDimensionString(!useDimensionString)}
               style={{
-                padding: '12px 24px',
-                backgroundColor: '#8BC53F',
-                color: 'white',
-                border: 'none',
+                padding: '8px 16px',
+                border: '1px solid #86efac',
+                backgroundColor: 'white',
                 borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: (searchLoading || !width || !ratio || !diameter) ? 'not-allowed' : 'pointer',
-                opacity: (searchLoading || !width || !ratio || !diameter) ? 0.7 : 1
+                fontSize: '13px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                color: '#15803d'
               }}
             >
-              {searchLoading ? t.searching : t.tire_search_btn}
+              {useDimensionString ? (lang === 'sv' ? '← Separata fält' : '← Separate fields') : (lang === 'sv' ? 'Enhetlig format →' : 'Unified format →')}
             </button>
-          </form>
+          </div>
+
+          {!useDimensionString ? (
+            <form onSubmit={performManualSearch} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', alignItems: 'flex-end' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                  {t.tire_width}
+                </label>
+                <input
+                  type="text"
+                  placeholder="205"
+                  value={width}
+                  onChange={(e) => setWidth(e.target.value)}
+                  style={{
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                  {t.tire_ratio}
+                </label>
+                <input
+                  type="text"
+                  placeholder="55"
+                  value={ratio}
+                  onChange={(e) => setRatio(e.target.value)}
+                  style={{
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                  {t.tire_diameter}
+                </label>
+                <input
+                  type="text"
+                  placeholder="16"
+                  value={diameter}
+                  onChange={(e) => setDiameter(e.target.value)}
+                  style={{
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={searchLoading || !width || !ratio || !diameter}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#8BC53F',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: (searchLoading || !width || !ratio || !diameter) ? 'not-allowed' : 'pointer',
+                  opacity: (searchLoading || !width || !ratio || !diameter) ? 0.7 : 1
+                }}
+              >
+                {searchLoading ? t.searching : t.tire_search_btn}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={performDimensionSearch} style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                  {lang === 'sv' ? 'Däckdimension' : 'Tire Dimension'}
+                </label>
+                <input
+                  type="text"
+                  placeholder="225/50 R16"
+                  value={dimension}
+                  onChange={(e) => setDimension(e.target.value)}
+                  style={{
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={searchLoading || !dimension}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#8BC53F',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: (searchLoading || !dimension) ? 'not-allowed' : 'pointer',
+                  opacity: (searchLoading || !dimension) ? 0.7 : 1,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {searchLoading ? t.searching : t.tire_search_btn}
+              </button>
+            </form>
+          )}
         </div>
       )}
 

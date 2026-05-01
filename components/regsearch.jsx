@@ -39,14 +39,18 @@ function PlateInput({ value, onChange, dark }) {
 function RegSearch({ label = "Hitta däck till din bil", help = "Vi visar produkter som passar din bil — gratis och utan inloggning", dark = false, onSearch }) {
   const [reg, setReg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSearch = async () => {
+    setError("");
     console.log('🔍 Search triggered:', { reg, hasOnSearch: !!onSearch });
     if (onSearch && reg.trim()) {
       console.log('🔍 Calling onSearch with:', reg);
       setIsLoading(true);
       try {
         await onSearch(reg);
+      } catch (err) {
+        setError(err.message || "Sökningen misslyckades");
       } finally {
         setIsLoading(false);
       }
@@ -87,6 +91,7 @@ function RegSearch({ label = "Hitta däck till din bil", help = "Vi visar produk
           )}
         </button>
       </form>
+      {error && <div className="regsearch-error">{error}</div>}
       <div className="regsearch-help">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="16.5" r=".7" fill="currentColor"/></svg>
         {help}

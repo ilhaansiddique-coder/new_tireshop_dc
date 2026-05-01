@@ -136,6 +136,32 @@ async function searchProductsBySize(width, ratio, diameter, typeId = null, brand
   }
 }
 
+function parseTireDimension(dimension) {
+  if (!dimension || !dimension.trim()) return null;
+
+  const cleaned = dimension.replace(/\s+/g, '').toUpperCase();
+
+  // Support formats: 225/50 R16, 225/50/16, 225-50-16
+  const patterns = [
+    /^(\d+)\/(\d+)\s*[Rr](\d+)$/, // 225/50 R16
+    /^(\d+)\/(\d+)\/(\d+)$/, // 225/50/16
+    /^(\d+)-(\d+)-(\d+)$/, // 225-50-16
+  ];
+
+  for (const pattern of patterns) {
+    const match = cleaned.match(pattern);
+    if (match) {
+      return {
+        width: match[1],
+        ratio: match[2],
+        diameter: match[3]
+      };
+    }
+  }
+
+  return null;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
@@ -147,7 +173,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { plate, width, ratio, diameter, type, brand } = req.query;
+    const { plate, width, ratio, diameter, type, brand, dimension } = req.query;
 
     if (plate) {
       // Plate-based search: lookup car, extract tire size, search products
@@ -180,6 +206,30 @@ export default async function handler(req, res) {
         products: normalized,
         tiresFound: normalized.length
       });
+    } else if (dimension) {
+      // Dimension string search (e.g., "225/50 R16")
+      const parsed = parseTireDimension(dimension);
+      if (!parsed) {
+        return res.status(400).json({
+          error: 'Invalid tire dimension format. Use format like: 225/50 R16'
+        });
+      }
+
+      const products = await searchProductsBySize(
+        parsed.width,
+        parsed.ratio,
+        parsed.diameter,
+        type ? parseInt(type) : null,
+        brand
+      );
+
+      const normalized = normalizeProductsResponse(products);
+
+      return res.json({
+        products: normalized,
+        tiresFound: normalized.length,
+        dimension: `${parsed.width}/${parsed.ratio} R${parsed.diameter}`
+      });
     } else if (width && ratio && diameter) {
       // Direct size search
       const products = await searchProductsBySize(
@@ -198,7 +248,7 @@ export default async function handler(req, res) {
       });
     } else {
       return res.status(400).json({
-        error: 'Provide either plate OR (width, ratio, diameter)'
+        error: 'Provide either plate, dimension, or (width, ratio, diameter)'
       });
     }
   } catch (err) {

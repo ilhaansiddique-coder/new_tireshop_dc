@@ -112,6 +112,23 @@ function saveBookings(bookings) {
 // API Routes
 // ============================================================================
 
+function parseTireDimension(dimension) {
+  if (!dimension || !dimension.trim()) return null;
+  const cleaned = dimension.replace(/\s+/g, '').toUpperCase();
+  const patterns = [
+    /^(\d+)\/(\d+)\s*[Rr](\d+)$/, // 225/50 R16
+    /^(\d+)\/(\d+)\/(\d+)$/, // 225/50/16
+    /^(\d+)-(\d+)-(\d+)$/, // 225-50-16
+  ];
+  for (const pattern of patterns) {
+    const match = cleaned.match(pattern);
+    if (match) {
+      return { width: match[1], ratio: match[2], diameter: match[3] };
+    }
+  }
+  return null;
+}
+
 // GET /api/products — search tires by plate or size
 app.get("/api/products", async (req, res) => {
   try {
@@ -119,7 +136,7 @@ app.get("/api/products", async (req, res) => {
       return res.status(500).json({ error: "Server missing API_KEY" });
     }
 
-    const { plate, width, ratio, diameter, type, brand } = req.query;
+    const { plate, width, ratio, diameter, type, brand, dimension } = req.query;
 
     if (plate) {
       // Plate-based search
@@ -248,8 +265,62 @@ app.get("/api/products", async (req, res) => {
         console.error("[Products] Error:", err.message);
         res.status(500).json({ error: err.message });
       }
+    } else if (dimension) {
+      // Dimension string search (e.g., "225/50 R16")
+      const parsed = parseTireDimension(dimension);
+      if (!parsed) {
+        return res.status(400).json({
+          error: 'Invalid tire dimension format. Use format like: 225/50 R16'
+        });
+      }
+
+      const params = new URLSearchParams({
+        version: "2",
+        width: parsed.width,
+        aspectRatio: parsed.ratio,
+        diameter: parsed.diameter,
+        typeId: type || "1",
+        searchMode: "4",
+        webshopId: "38",
+        limit: "50",
+        minQuantityInStock: "1",
+        showNoimageTyres: "1",
+        showNoimageRims: "1",
+        includeLocations: "1048",
+        vehicleType: "alla",
+        isElectricVehicle: "false",
+        isEnforced: "false",
+        isMCVehicleType: "false",
+        isRunflat: "false",
+        isSilence: "false",
+        isStaggeredFitment: "true",
+        minimumTestScore: "0",
+        page: "1"
+      });
+
+      if (brand) params.append("query", brand);
+
+      try {
+        const productsResponse = await fetch(
+          `${EONTYRE_API_URL}/api/webshop/products?${params}`,
+          { headers: { "Api-Key": API_KEY } }
+        );
+
+        const products = await productsResponse.json();
+        const productsList = Array.isArray(products) ? products : (products.data?.products || products.data || []);
+        const normalized = normalizeProducts(productsList);
+
+        res.json({
+          products: normalized,
+          tiresFound: normalized.length,
+          dimension: `${parsed.width}/${parsed.ratio} R${parsed.diameter}`
+        });
+      } catch (err) {
+        console.error("[Products] Error:", err.message);
+        res.status(500).json({ error: err.message });
+      }
     } else {
-      res.status(400).json({ error: "Provide either plate OR (width, ratio, diameter)" });
+      res.status(400).json({ error: "Provide either plate, dimension, or (width, ratio, diameter)" });
     }
   } catch (err) {
     console.error("[Products] Unexpected error:", err);

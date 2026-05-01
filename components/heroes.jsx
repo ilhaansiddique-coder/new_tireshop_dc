@@ -1,4 +1,4 @@
-/* global React, DCIcons, DCTire, DCRegSearch */
+/* global React, DCIcons, DCTire, DCRegSearch, DCTireDimensionSearch */
 const { IconArrow, IconShield, IconSpark, IconLeaf, IconCheck } = DCIcons;
 
 function CountUp({ to, duration = 1600, suffix = "", prefix = "" }) {
@@ -84,6 +84,50 @@ function HeroV1() {
     }
   };
 
+  const handleTireDimensionSearch = async (parsedDimension) => {
+    console.log('🔍 HeroV1 tire dimension search triggered:', parsedDimension);
+    window.dcSearchLoading = true;
+    window.dispatchEvent(new CustomEvent('search-updated'));
+
+    try {
+      const params = new URLSearchParams({
+        width: parsedDimension.width,
+        ratio: parsedDimension.ratio,
+        diameter: parsedDimension.diameter
+      });
+      const response = await fetch(`/api/products?${params}`);
+      console.log('📡 Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API error response:', errorText.substring(0, 500));
+        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('📦 Raw API response:', data);
+
+      window.dcSearchResults = {
+        dimension: data.dimension || `${parsedDimension.width}/${parsedDimension.ratio} R${parsedDimension.diameter}`,
+        products: data.products || [],
+        loading: false
+      };
+      console.log('✅ Search results updated:', window.dcSearchResults);
+      window.dispatchEvent(new CustomEvent('search-updated'));
+    } catch (err) {
+      console.error('❌ Search error:', err);
+      window.dcSearchResults = {
+        dimension: null,
+        products: [],
+        error: err.message,
+        loading: false
+      };
+      window.dispatchEvent(new CustomEvent('search-updated'));
+    } finally {
+      window.dcSearchLoading = false;
+    }
+  };
+
   return (
     <section className="hero" data-variant="1">
       <div className="container hero-grid">
@@ -110,6 +154,12 @@ function HeroV1() {
             label="Sök på regnummer (valfritt)"
             help="Hitta däck och fälg som passar exakt din bil."
             onSearch={handleSearch}
+          />
+
+          <DCTireDimensionSearch
+            label="Eller sök på däckdimension"
+            help="Ange dimension i format 225/50 R16"
+            onSearch={handleTireDimensionSearch}
           />
 
           <div style={{height: 36}}/>
