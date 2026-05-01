@@ -45,7 +45,7 @@
 <script src="lib/cart-manager.js"></script>
 <script type="text/babel" src="components/icons.jsx"></script>
 <script type="text/babel" src="components/header.jsx"></script>
-<script type="text/babel" src="components/cart-drawer.jsx"></script>
+<script type="text/babel" src="components/mini-cart.jsx"></script>
 <script type="text/babel" src="components/regsearch.jsx"></script>
 <script type="text/babel" src="components/tire.jsx"></script>
 <script type="text/babel" src="components/sections.jsx"></script>
@@ -65,14 +65,14 @@
     ReactDOM.createRoot(headerRoot).render(
       <>
         <DCHeader activeIndex={3} />
-        <div id="cart-drawer-root" style={{display: 'contents'}}></div>
+        <div id="mini-cart-root" style={{display: 'contents'}}></div>
       </>
     );
 
     setTimeout(() => {
       const cartRoot = document.getElementById('cart-drawer-root');
       if (cartRoot) {
-        ReactDOM.createRoot(cartRoot).render(<DCCartDrawer/>);
+        ReactDOM.createRoot(cartRoot).render(<DCMiniCart/>);
       }
     }, 100);
   }

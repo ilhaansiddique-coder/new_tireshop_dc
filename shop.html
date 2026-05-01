@@ -42,8 +42,8 @@
 <script src="lib/cart-manager.js"></script>
 
 <script type="text/babel" src="components/icons.jsx"></script>
+<script type="text/babel" src="components/mini-cart.jsx"></script>
 <script type="text/babel" src="components/header.jsx"></script>
-<script type="text/babel" src="components/cart-drawer.jsx"></script>
 <script type="text/babel" src="components/product-card.jsx"></script>
 <script type="text/babel" src="pages/ShopPage.jsx"></script>
 
@@ -54,20 +54,18 @@
     ReactDOM.createRoot(topbarRoot).render(<DCTopBar />);
   }
 
-  // Render header with cart drawer
+  // Render header
   const headerRoot = document.getElementById('header');
   if (headerRoot) {
     ReactDOM.createRoot(headerRoot).render(
-      <>
-        <DCHeader activeIndex={0} />
-        <div id="cart-drawer-root" style={{display: 'contents'}}></div>
-      </>
+      <DCHeader activeIndex={0} />
     );
 
+    // Render mini cart in the header's cart root
     setTimeout(() => {
-      const cartRoot = document.getElementById('cart-drawer-root');
+      const cartRoot = document.getElementById('mini-cart-root');
       if (cartRoot) {
-        ReactDOM.createRoot(cartRoot).render(<DCCartDrawer/>);
+        ReactDOM.createRoot(cartRoot).render(<DCMiniCart/>);
       }
     }, 100);
   }

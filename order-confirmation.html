@@ -33,7 +33,7 @@
 
 <script type="text/babel" src="components/icons.jsx"></script>
 <script type="text/babel" src="components/header.jsx"></script>
-<script type="text/babel" src="components/cart-drawer.jsx"></script>
+<script type="text/babel" src="components/mini-cart.jsx"></script>
 <script type="text/babel" src="pages/OrderConfirmationPage.jsx"></script>
 
 <script type="text/babel">
@@ -49,14 +49,14 @@
     ReactDOM.createRoot(headerRoot).render(
       <>
         <DCHeader activeIndex={0} />
-        <div id="cart-drawer-root" style={{display: 'contents'}}></div>
+        <div id="mini-cart-root" style={{display: 'contents'}}></div>
       </>
     );
 
     setTimeout(() => {
       const cartRoot = document.getElementById('cart-drawer-root');
       if (cartRoot) {
-        ReactDOM.createRoot(cartRoot).render(<DCCartDrawer/>);
+        ReactDOM.createRoot(cartRoot).render(<DCMiniCart/>);
       }
     }, 100);
   }
