@@ -520,6 +520,8 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
     const callbackToken = uuidv4();
 
     console.log(`[Qliro] Creating checkout for pendingId: ${pendingId}`);
+    console.log(`[Qliro] Environment: NODE_ENV=${NODE_ENV}`);
+    console.log(`[Qliro] Credentials configured: KEY=${!!QLIRO_API_KEY}, SECRET=${!!QLIRO_API_SECRET}`);
 
     // Create Qliro order payload
     const qliroOrder = {
@@ -546,20 +548,22 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
 
     // For local testing: mock Qliro response if credentials are invalid
     let createData, iframeSnippet, qliroOrderId;
+    const isMockMode = !QLIRO_API_KEY || !QLIRO_API_SECRET || QLIRO_API_KEY === "DACKA";
 
-    if (NODE_ENV === "development" && QLIRO_API_KEY === "DACKA") {
-      console.log(`[Qliro] MOCK MODE - Using test response`);
+    if (isMockMode) {
       qliroOrderId = `mock-qliro-${pendingId.substring(0, 8)}`;
       iframeSnippet = `
         <div style="border: 2px solid #0ea5e9; padding: 20px; border-radius: 8px; background: #f0f9ff; text-align: center;">
           <h3 style="color: #0c4a6e; margin-top: 0;">🧪 Qliro Payment Form (Test Mode)</h3>
-          <p style="color: #0c4a6e; margin: 10px 0;">API credentials (DACKA) are in development mode.</p>
-          <p style="color: #0c4a6e; font-size: 14px; margin: 10px 0;">In production, Qliro's actual payment form would appear here.</p>
+          <p style="color: #0c4a6e; margin: 10px 0;">API credentials are not configured.</p>
+          <p style="color: #0c4a6e; font-size: 14px; margin: 10px 0;">In production with valid credentials, Qliro's payment form would appear here.</p>
           <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 6px; border: 1px solid #cbd5e1;">
-            <p style="font-size: 12px; color: #666; margin: 0;">To use real Qliro payments:</p>
-            <p style="font-size: 12px; color: #666; margin: 5px 0;">1. Get valid Qliro API credentials from https://developers.qliro.com</p>
-            <p style="font-size: 12px; color: #666; margin: 5px 0;">2. Update QLIRO_API_KEY and QLIRO_API_SECRET in .env.local</p>
-            <p style="font-size: 12px; color: #666; margin: 5px 0;">3. Restart the server</p>
+            <p style="font-size: 12px; color: #666; margin: 0;">To use real Qliro payments on Coolify:</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0;">1. Get Qliro API credentials from https://developers.qliro.com</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0;">2. Set environment variables on Coolify dashboard:</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0; padding-left: 12px;">QLIRO_API_KEY = your_api_key</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0; padding-left: 12px;">QLIRO_API_SECRET = your_api_secret</p>
+            <p style="font-size: 12px; color: #666; margin: 5px 0;">3. Redeploy the application</p>
           </div>
           <p style="color: #10b981; font-weight: bold; margin-top: 15px; font-size: 14px;">✅ Payment will auto-complete in 3 seconds for testing...</p>
         </div>
