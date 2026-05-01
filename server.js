@@ -67,18 +67,34 @@ const allowedOrigins = (process.env.FRONTEND_URL || "")
   .map((o) => o.trim())
   .filter(Boolean);
 
+console.log(`[CORS] Allowed origins from FRONTEND_URL: ${allowedOrigins.length > 0 ? allowedOrigins.join(", ") : "(none configured)"}`);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        // No origin header = same-origin request, allow it
+        return callback(null, true);
+      }
+
+      // Allow local development
       const isLocalDev =
         NODE_ENV !== "production" &&
         (/^http:\/\/localhost(:\d+)?$/.test(origin) ||
           /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin));
+
+      // Allow whitelisted origins
       const isWhitelisted = allowedOrigins.includes(origin);
 
-      if (isWhitelisted || isLocalDev) return callback(null, true);
-      console.warn(`[CORS] Blocked origin: ${origin}`);
+      // If no origins are configured, allow all for development
+      const noOriginsConfigured = allowedOrigins.length === 0;
+
+      if (isWhitelisted || isLocalDev || noOriginsConfigured) {
+        console.log(`[CORS] ✅ Allowed origin: ${origin}`);
+        return callback(null, true);
+      }
+
+      console.warn(`[CORS] ❌ Blocked origin: ${origin}`);
       return callback(new Error("CORS policy violation"));
     },
     credentials: true,
