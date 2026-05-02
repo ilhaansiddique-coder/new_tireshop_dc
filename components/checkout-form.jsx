@@ -579,16 +579,31 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null, on
           margin-left: 4px;
         }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        input[type="number"] {
+        .checkout-form input[type="text"],
+        .checkout-form input[type="email"],
+        .checkout-form input[type="tel"],
+        .checkout-form input[type="number"],
+        .checkout-form select,
+        .checkout-form textarea {
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
           padding: 10px 12px;
           border: 1px solid #d1d5db;
           border-radius: 6px;
           font-size: 14px;
           background: white;
           transition: border-color 0.2s;
+        }
+
+        .checkout-form .form-group {
+          margin-bottom: 14px;
+        }
+        .checkout-form .form-group label {
+          display: block;
+          margin-bottom: 6px;
+          font-size: 14px;
+          font-weight: 500;
         }
 
         input:focus {
