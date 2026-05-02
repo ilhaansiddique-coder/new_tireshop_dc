@@ -540,19 +540,7 @@ function ShopPage() {
         {filteredProducts.map(product => (
           <DCProductCard
             key={`${product.id}-${product.supplier_id || ''}`}
-            product={{
-              productId: product.id,
-              name: product.name,
-              description: product.brand,
-              price: product.price,
-              stock: product.stock,
-              image: product.image,
-              attrs: {
-                dimension: product.dimension,
-                brand: product.brand,
-                type: product.seasonType
-              }
-            }}
+            product={product}
           />
         ))}
       </div>

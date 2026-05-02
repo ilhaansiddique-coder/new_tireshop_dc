@@ -517,25 +517,6 @@ function CheckoutPage() {
           )}
         </div>
 
-        {/* ── Next steps ── */}
-        <div style={card()}>
-          <h3 style={sectionTitle}>📋 {lang === 'sv' ? 'Nästa steg' : 'What happens next'}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {[
-              lang === 'sv' ? '📧 Orderbekräftelse skickas till ' + (c.email || 'din e-post') : '📧 Order confirmation sent to ' + (c.email || 'your email'),
-              isPickup
-                ? (lang === 'sv' ? '📞 Vi kontaktar dig när ordern är redo' : '📞 We will contact you when ready for pickup')
-                : (lang === 'sv' ? '📦 Din order packas och skickas inom 1–2 arbetsdagar' : '📦 Your order will be packed and shipped within 1–2 business days'),
-              lang === 'sv' ? '🔧 Boka tid för montering om du behöver hjälp' : '🔧 Book a fitting appointment if you need assistance'
-            ].map((step, i) => (
-              <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '8px 12px', background: '#f9fafb', borderRadius: '8px', fontSize: '13px', color: '#374151' }}>
-                <span style={{ fontWeight: '700', color: '#8bc53f', minWidth: '20px' }}>{i + 1}.</span>
-                <span>{step}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* ── Actions ── */}
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '32px' }}>
           <button onClick={() => window.location.href = '/'}

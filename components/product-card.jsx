@@ -80,30 +80,90 @@ function ProductCard({ product, onAdd }) {
 
   const inStock = product.stock && product.stock > 0;
   const price = product.price || 0;
-  const image = product.image || product.images?.[0];
+  const rawImage = product.image || product.images?.[0];
+  const image = typeof rawImage === 'string'
+    ? rawImage
+    : (rawImage?.webshop_thumb || rawImage?.original || rawImage?.thumbnail || null);
 
   return (
     <div className="product-card">
-      {image && (
-        <div className="product-image">
+      <div className="product-image">
+        {image ? (
           <img src={image} alt={product.name || product.description} loading="lazy" />
-          {!inStock && <div className="stock-overlay">{t.outOfStock}</div>}
-        </div>
-      )}
+        ) : (
+          <div className="product-image-placeholder" aria-hidden="true">🛞</div>
+        )}
+        {!inStock && <div className="stock-overlay">{t.outOfStock}</div>}
+      </div>
 
       <div className="product-info">
-        <h3 className="product-name">{product.name || product.description}</h3>
-
-        {product.attrs?.dimension && (
-          <p className="product-dimension">{product.attrs.dimension}</p>
+        {/* Brand (large) */}
+        {(typeof product.brand === 'string' ? product.brand : product.brand?.name) && (
+          <p className="product-brand-name">
+            {typeof product.brand === 'string' ? product.brand : product.brand.name}
+          </p>
         )}
 
-        {product.brand?.name && (
-          <p className="product-brand">{product.brand.name}</p>
+        {/* Model name */}
+        {(product.model || product.name) && (
+          <p className="product-model-name">
+            {typeof product.model === 'string' ? product.model : (product.model?.name || product.name)}
+          </p>
         )}
 
-        {product.model?.name && (
-          <p className="product-model">{product.model.name}</p>
+        {/* Dimension + load/speed (only append if dimension doesn't already include it) */}
+        {(product.dimension || product.attrs?.dimension) && (() => {
+          const dim = product.dimension || product.attrs?.dimension;
+          const loadSpeed = product.loadIndex && product.speedIndex ? `${product.loadIndex}${product.speedIndex}` : '';
+          const showLoadSpeed = loadSpeed && !dim.includes(loadSpeed);
+          return (
+            <p className="product-dimension">
+              {dim}{showLoadSpeed ? ` ${loadSpeed}` : ''}
+            </p>
+          );
+        })()}
+
+        {/* DOT mark */}
+        {product.dotMark && (
+          <p className="product-dot">DOT:{product.dotMark}</p>
+        )}
+
+        {/* Flags row: XL, RF, Silent, Studded, EV */}
+        <div className="product-flags">
+          {product.isEnforced && <span className="flag flag-xl" title="Extra Load">XL</span>}
+          {product.isRunflat && <span className="flag" title="Run-flat">RF</span>}
+          {product.isSilence && <span className="flag" title="Silent">SIL</span>}
+          {product.isStudded && <span className="flag" title="Studded">DUB</span>}
+          {product.isElectricVehicle && <span className="flag" title="Electric Vehicle">EV</span>}
+        </div>
+
+        {/* EU labels: fuel / wet / noise */}
+        {(product.rollingResistance || product.wetGrip || product.noiseRating) && (
+          <div className="product-eu-labels">
+            {product.rollingResistance && (
+              <span className="eu-label" title={`Rolling resistance: ${product.rollingResistance}`}>
+                <span className="eu-icon">⛽</span>
+                <span className="eu-grade">{product.rollingResistance}</span>
+              </span>
+            )}
+            {product.wetGrip && (
+              <span className="eu-label" title={`Wet grip: ${product.wetGrip}`}>
+                <span className="eu-icon">🌧️</span>
+                <span className="eu-grade">{product.wetGrip}</span>
+              </span>
+            )}
+            {product.noiseRating && (
+              <span className="eu-label" title={`Noise: ${product.noiseRating}${product.noiseDecibel ? ` (${product.noiseDecibel}dB)` : ''}`}>
+                <span className="eu-icon">🔊</span>
+                <span className="eu-grade">{product.noiseRating}</span>
+              </span>
+            )}
+            {product.snowGrip && (
+              <span className="eu-label" title="3PMSF Snow Grip">
+                <span className="eu-icon">❄️</span>
+              </span>
+            )}
+          </div>
         )}
 
         <div className="product-meta">
@@ -174,6 +234,12 @@ function ProductCard({ product, onAdd }) {
           object-fit: cover;
         }
 
+        .product-image-placeholder {
+          font-size: 64px;
+          color: #9ca3af;
+          opacity: 0.5;
+        }
+
         .stock-overlay {
           position: absolute;
           inset: 0;
@@ -201,10 +267,76 @@ function ProductCard({ product, onAdd }) {
           color: var(--color-text, #1f2937);
         }
 
+        .product-brand-name {
+          margin: 0 0 2px 0;
+          font-size: 18px;
+          font-weight: 800;
+          letter-spacing: 0.3px;
+          color: #111827;
+        }
+
+        .product-model-name {
+          margin: 0 0 6px 0;
+          font-size: 14px;
+          font-weight: 600;
+          color: #374151;
+        }
+
         .product-dimension {
           margin: 0 0 4px 0;
           font-size: 13px;
+          color: #4b5563;
+        }
+
+        .product-dot {
+          margin: 0 0 8px 0;
+          font-size: 12px;
           color: #6b7280;
+        }
+
+        .product-flags {
+          display: flex;
+          gap: 6px;
+          margin-bottom: 8px;
+          flex-wrap: wrap;
+        }
+
+        .product-flags .flag {
+          padding: 2px 6px;
+          font-size: 11px;
+          font-weight: 700;
+          color: #1f2937;
+          border-bottom: 1px solid #1f2937;
+          letter-spacing: 0.5px;
+        }
+
+        .product-eu-labels {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 12px;
+          flex-wrap: wrap;
+        }
+
+        .eu-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 3px 8px;
+          background: #1f2937;
+          color: white;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .eu-icon {
+          font-size: 12px;
+          line-height: 1;
+        }
+
+        .eu-grade {
+          font-size: 13px;
+          font-weight: 800;
         }
 
         .product-brand {

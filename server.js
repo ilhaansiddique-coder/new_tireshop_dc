@@ -1374,19 +1374,26 @@ function normalizeProducts(products) {
 
     const brand = p.brand?.name || p.brand || "Unknown";
     const extractedProductId = p.productId || p.product_id || p.id;
+    const a = p.attrs || {};
 
     return {
       id: p.id,
       productId: extractedProductId,
       sku: p.sku,
       name: p.name,
+      description: p.description,
+      model: p.model?.name,
       brand: brand,
-      dimension: p.dimension || `${p.width}/${p.aspectRatio}R${p.diameter}`,
-      width: p.width,
-      aspectRatio: p.aspect_ratio || p.aspectRatio,
-      diameter: p.diameter,
-      seasonType: p.season_type || p.seasonType || p.attrs?.tyreType?.name,
-      seasonTypeId: p.type_id || p.typeId || p.attrs?.compoundType?.id,
+      dimension: a.dimension || p.dimension || `${a.width || p.width}/${a.aspectRatio || p.aspectRatio}R${a.diameter || p.diameter}`,
+      width: a.width || p.width,
+      aspectRatio: a.aspectRatio || p.aspect_ratio || p.aspectRatio,
+      diameter: a.diameter || p.diameter,
+      loadIndex: a.loadIndex,
+      speedIndex: a.speedIndex,
+      seasonType: a.tyreType?.name || p.season_type || p.seasonType,
+      // compoundType.id is the season filter key (1=Summer, 2=Winter, 3=All-season)
+      seasonTypeId: a.compoundType?.id || p.type_id || p.typeId,
+      tyreTypeId: a.tyreType?.id,
       price: p.price || p.consumerPrice,
       priceFormatted: formatPrice(p.price || p.consumerPrice || 0),
       stock: p.stock || p.quantity_in_stock || 0,
@@ -1394,6 +1401,24 @@ function normalizeProducts(products) {
       supplier_id: p.supplier_id || p.supplierId,
       location_id: p.location_id || p.location?.id,
       type_id: p.type_id || p.typeId,
+      // Tyre flags
+      isEnforced: !!a.isEnforced,         // XL (extra load)
+      isRunflat: !!a.isRunflat,           // RF
+      isSilence: !!a.isSilence,           // Silent
+      isStudded: !!a.isStudded,           // Dubbat
+      isStuddable: !!a.isStuddable,
+      isElectricVehicle: !!a.isElectricVehicle,
+      // EU label
+      rollingResistance: a.rollingResistance || null,  // A–E
+      wetGrip: a.wetGrip || null,                       // A–E
+      noiseDecibel: a.noiseDecibel || null,
+      noiseRating: a.noiseRating || null,               // A/B/C
+      eprelLabelImage: a.eprelLabelImage || null,
+      // Manufacturing date code
+      dotMark: a.dotMark || null,
+      // Snow/Ice (3PMSF)
+      snowGrip: !!a.tyreSnowGrip,
+      iceGrip: !!a.tyreIceGrip,
     };
   });
 }

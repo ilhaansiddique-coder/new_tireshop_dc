@@ -458,15 +458,6 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null, on
       <fieldset className="form-section">
         <legend>{t.deliveryOptions}</legend>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button type="button" style={toggleBtn(deliveryOption === '0')} onClick={() => {
-            setDeliveryOption('0');
-            onDeliveryOptionChange?.('0');
-            if (formData.postal_code && formData.postal_code.length >= 5 && onPostalCodeChange) {
-              onPostalCodeChange(formData.postal_code, formData.city, formData.address1, '0');
-            }
-          }}>
-            {t.pickup}
-          </button>
           <button type="button" style={toggleBtn(deliveryOption === '1')} onClick={() => {
             setDeliveryOption('1');
             onDeliveryOptionChange?.('1');
@@ -475,6 +466,15 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null, on
             }
           }}>
             {lang === 'sv' ? 'Hemleverans' : 'Home Delivery'}
+          </button>
+          <button type="button" style={toggleBtn(deliveryOption === '0')} onClick={() => {
+            setDeliveryOption('0');
+            onDeliveryOptionChange?.('0');
+            if (formData.postal_code && formData.postal_code.length >= 5 && onPostalCodeChange) {
+              onPostalCodeChange(formData.postal_code, formData.city, formData.address1, '0');
+            }
+          }}>
+            {t.pickup}
           </button>
         </div>
       </fieldset>
