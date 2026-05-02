@@ -315,9 +315,29 @@ function ShopPage() {
   const t = translations[lang] || translations.sv;
 
   return (
-    <div style={{ maxWidth: '1320px', margin: '0 auto', padding: '40px 20px' }}>
+    <div className="shop-root" style={{ maxWidth: '1320px', margin: '0 auto', padding: '40px 20px' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .shop-root { padding: 20px 12px !important; }
+          .shop-root .shop-search { padding: 20px !important; }
+          .shop-root .shop-search h2 { font-size: 18px !important; }
+          .shop-root .shop-search form { flex-direction: column !important; gap: 8px !important; }
+          .shop-root .shop-search button { width: 100% !important; }
+          .shop-root .filter-panel { padding: 14px !important; }
+          .shop-root .filter-panel .filter-top-row { gap: 14px !important; }
+          .shop-root .filter-panel select { width: 100% !important; min-width: 0 !important; }
+          .shop-root .filter-panel .friction-tile { width: 64px !important; height: 64px !important; font-size: 11px !important; }
+          .shop-root .filter-panel .grade-row { flex-wrap: wrap !important; }
+          .shop-root .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+        }
+        @media (max-width: 480px) {
+          .shop-root { padding: 16px 8px !important; }
+          .shop-root .filter-panel .friction-tile { width: 56px !important; height: 56px !important; }
+          .shop-root .product-grid { gap: 8px !important; }
+        }
+      `}</style>
       {/* Search Section */}
-      <div style={{
+      <div className="shop-search" style={{
         background: '#f3f4f6',
         padding: '30px',
         borderRadius: '12px',
@@ -394,6 +414,7 @@ function ShopPage() {
 
         const frictionTile = (value, label, icon) => (
           <button
+            className="friction-tile"
             onClick={() => setFrictionFilter(frictionFilter === value ? '' : value)}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -414,6 +435,7 @@ function ShopPage() {
 
         const dubbTile = (
           <button
+            className="friction-tile"
             onClick={() => setPropStudded(!propStudded)}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -453,9 +475,9 @@ function ShopPage() {
         );
         const sectionLabel = { fontSize: '11px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' };
         return (
-          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '20px', marginBottom: '30px' }}>
+          <div className="filter-panel" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '20px', marginBottom: '30px' }}>
             {/* Top row: season + brand + clear */}
-            <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div className="filter-top-row" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
               <div>
                 <div style={sectionLabel}>{t.season || 'Däcktyp'}</div>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -726,7 +748,7 @@ function ShopPage() {
       )}
 
       {/* Products Grid */}
-      <div style={{
+      <div className="product-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
         gap: '20px'

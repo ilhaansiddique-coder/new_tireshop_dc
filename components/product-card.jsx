@@ -432,6 +432,23 @@ function ProductCard({ product, onAdd }) {
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
+
+        @media (max-width: 480px) {
+          .product-info { padding: 10px !important; }
+          .product-brand-name { font-size: 15px !important; }
+          .product-model-name { font-size: 12px !important; }
+          .product-dimension { font-size: 12px !important; }
+          .product-dot { font-size: 11px !important; margin-bottom: 6px !important; }
+          .product-flags { gap: 4px !important; margin-bottom: 6px !important; }
+          .product-flags .flag { font-size: 10px !important; padding: 1px 4px !important; }
+          .product-eu-labels { gap: 4px !important; margin-bottom: 8px !important; }
+          .eu-label { padding: 2px 5px !important; font-size: 10px !important; }
+          .eu-grade { font-size: 11px !important; }
+          .product-price { font-size: 16px !important; margin-bottom: 8px !important; }
+          .product-btn { padding: 8px 10px !important; font-size: 12px !important; gap: 4px !important; }
+          .product-meta { gap: 4px !important; margin-bottom: 8px !important; font-size: 10px !important; }
+          .stock-badge { padding: 2px 5px !important; font-size: 10px !important; }
+        }
       `}</style>
     </div>
   );
