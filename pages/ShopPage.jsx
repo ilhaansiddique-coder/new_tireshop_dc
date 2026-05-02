@@ -62,6 +62,7 @@ function ShopPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [seasonFilter, setSeasonFilter] = useState(null);
+  const [frictionFilter, setFrictionFilter] = useState('');  // '' | 'nordic' | 'european' (only when winter)
   const [brandFilter, setBrandFilter] = useState('');
   const [speedFilter, setSpeedFilter] = useState('');
   const [loadFilter, setLoadFilter] = useState('');
@@ -258,8 +259,27 @@ function ShopPage() {
   const availableLoads = [...new Set(products.map(p => p.loadIndex).filter(Boolean))].sort();
   const grades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
+  // Match season by name (works across compoundType.id values like 4 = "Vinter (nordisk)")
+  const seasonMatches = (p) => {
+    if (!seasonFilter) return true;
+    const name = (p.seasonType || '').toLowerCase();
+    if (seasonFilter === 1) return /sommar|summer/.test(name);
+    if (seasonFilter === 2) return /vinter|winter/.test(name);
+    if (seasonFilter === 3) return /helår|all.?season/.test(name);
+    return p.seasonTypeId === seasonFilter;
+  };
+
+  const frictionMatches = (p) => {
+    if (!frictionFilter || seasonFilter !== 2) return true;
+    const name = (p.seasonType || '').toLowerCase();
+    if (frictionFilter === 'nordic') return /nordisk|nordic/.test(name);
+    if (frictionFilter === 'european') return /vinter|winter/.test(name) && !/nordisk|nordic/.test(name);
+    return true;
+  };
+
   const filteredProducts = products.filter(p => {
-    if (seasonFilter && p.seasonTypeId !== seasonFilter) return false;
+    if (!seasonMatches(p)) return false;
+    if (!frictionMatches(p)) return false;
     if (brandFilter && p.brand !== brandFilter) return false;
     if (speedFilter && p.speedIndex !== speedFilter) return false;
     if (loadFilter && p.loadIndex !== loadFilter) return false;
@@ -277,6 +297,7 @@ function ShopPage() {
 
   const clearAllFilters = () => {
     setSeasonFilter(null);
+    setFrictionFilter('');
     setBrandFilter('');
     setSpeedFilter('');
     setLoadFilter('');
@@ -358,7 +379,10 @@ function ShopPage() {
       {products.length > 0 && (() => {
         const seasonBtn = (id, label, emoji) => (
           <button
-            onClick={() => setSeasonFilter(id)}
+            onClick={() => {
+              setSeasonFilter(id);
+              if (id !== 2) setFrictionFilter('');
+            }}
             style={{
               padding: '8px 14px',
               border: seasonFilter === id ? '2px solid #8BC53F' : '1px solid #d1d5db',
@@ -366,6 +390,46 @@ function ShopPage() {
               borderRadius: '6px', cursor: 'pointer', fontSize: '14px',
             }}
           >{emoji} {label}</button>
+        );
+
+        const frictionTile = (value, label, icon) => (
+          <button
+            onClick={() => setFrictionFilter(frictionFilter === value ? '' : value)}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: '4px', width: '76px', height: '76px',
+              border: frictionFilter === value ? '2px solid #1f2937' : '1px solid #d1d5db',
+              background: frictionFilter === value ? '#1f2937' : 'white',
+              color: frictionFilter === value ? 'white' : '#374151',
+              borderRadius: '6px', cursor: 'pointer',
+              fontSize: '12px', fontWeight: '600',
+              position: 'relative',
+            }}
+          >
+            {frictionFilter === value && <span style={{ position: 'absolute', top: '4px', left: '6px', fontSize: '12px' }}>✓</span>}
+            <span style={{ fontSize: '24px' }}>{icon}</span>
+            {label}
+          </button>
+        );
+
+        const dubbTile = (
+          <button
+            onClick={() => setPropStudded(!propStudded)}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: '4px', width: '76px', height: '76px',
+              border: propStudded ? '2px solid #1f2937' : '1px solid #d1d5db',
+              background: propStudded ? '#1f2937' : 'white',
+              color: propStudded ? 'white' : '#9ca3af',
+              borderRadius: '6px', cursor: 'pointer',
+              fontSize: '12px', fontWeight: '600',
+              position: 'relative',
+            }}
+          >
+            {propStudded && <span style={{ position: 'absolute', top: '4px', left: '6px', fontSize: '12px' }}>✓</span>}
+            <span style={{ fontSize: '20px' }}>▲</span>
+            {lang === 'sv' ? 'Dubb' : 'Studded'}
+          </button>
         );
         const gradeBtn = (filter, setFilter, grade) => (
           <button
@@ -401,6 +465,23 @@ function ShopPage() {
                   {seasonBtn(3, t.all_season || 'Helår', '🍂')}
                 </div>
               </div>
+              {seasonFilter === 2 && (
+                <>
+                  <div>
+                    <div style={sectionLabel}>{lang === 'sv' ? 'Friktion' : 'Friction'}</div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {frictionTile('nordic', lang === 'sv' ? 'Nordisk' : 'Nordic', '🇳🇴')}
+                      {frictionTile('european', lang === 'sv' ? 'Europeisk' : 'European', '🇪🇺')}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={sectionLabel}>{lang === 'sv' ? 'Dubb' : 'Studded'}</div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {dubbTile}
+                    </div>
+                  </div>
+                </>
+              )}
               <div>
                 <div style={sectionLabel}>{lang === 'sv' ? 'Varumärke' : 'Brand'}</div>
                 <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)}
