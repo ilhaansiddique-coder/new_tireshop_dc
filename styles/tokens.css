@@ -121,6 +121,16 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+
+/* Universal horizontal overflow guard — prevents off-canvas decorative
+   elements (cart drawer, hero blobs, marquee track) from creating a
+   page-level horizontal scrollbar on any viewport.
+   `clip` is preferred over `hidden` so it doesn't establish a scrolling
+   container that breaks position: sticky inside the page. */
+html, body {
+  overflow-x: clip;
+  max-width: 100%;
+}
 body {
   font-family: var(--font-body);
   background: var(--bg);
