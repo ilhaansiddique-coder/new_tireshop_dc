@@ -45,87 +45,19 @@ function HeroStats({ items }) {
 
 /* ── Variant 1: classic light "allt under ett tak" ── */
 function HeroV1() {
-  const handleSearch = async (plate) => {
-    console.log('🔍 HeroV1 search triggered for plate:', plate);
-    window.dcSearchLoading = true;
-    window.dispatchEvent(new CustomEvent('search-updated'));
-
-    try {
-      const response = await fetch(`/api/products?plate=${encodeURIComponent(plate.toUpperCase())}`);
-      console.log('📡 Response status:', response.status, response.statusText);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API error response:', errorText.substring(0, 500));
-        throw new Error(`API returned ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('📦 Raw API response:', data);
-
-      window.dcSearchResults = {
-        car: data.car || null,
-        products: data.products || [],
-        loading: false
-      };
-      console.log('✅ Search results updated:', window.dcSearchResults);
-      window.dispatchEvent(new CustomEvent('search-updated'));
-    } catch (err) {
-      console.error('❌ Search error:', err);
-      window.dcSearchResults = {
-        car: null,
-        products: [],
-        error: err.message,
-        loading: false
-      };
-      window.dispatchEvent(new CustomEvent('search-updated'));
-    } finally {
-      window.dcSearchLoading = false;
-    }
+  const handleSearch = (plate) => {
+    if (!plate || !plate.trim()) return;
+    window.location.href = `/shop.html?plate=${encodeURIComponent(plate.toUpperCase())}`;
   };
 
-  const handleTireDimensionSearch = async (parsedDimension) => {
-    console.log('🔍 HeroV1 tire dimension search triggered:', parsedDimension);
-    window.dcSearchLoading = true;
-    window.dispatchEvent(new CustomEvent('search-updated'));
-
-    try {
-      const params = new URLSearchParams({
-        width: parsedDimension.width,
-        ratio: parsedDimension.ratio,
-        diameter: parsedDimension.diameter
-      });
-      const response = await fetch(`/api/products?${params}`);
-      console.log('📡 Response status:', response.status, response.statusText);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API error response:', errorText.substring(0, 500));
-        throw new Error(`API returned ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('📦 Raw API response:', data);
-
-      window.dcSearchResults = {
-        dimension: data.dimension || `${parsedDimension.width}/${parsedDimension.ratio} R${parsedDimension.diameter}`,
-        products: data.products || [],
-        loading: false
-      };
-      console.log('✅ Search results updated:', window.dcSearchResults);
-      window.dispatchEvent(new CustomEvent('search-updated'));
-    } catch (err) {
-      console.error('❌ Search error:', err);
-      window.dcSearchResults = {
-        dimension: null,
-        products: [],
-        error: err.message,
-        loading: false
-      };
-      window.dispatchEvent(new CustomEvent('search-updated'));
-    } finally {
-      window.dcSearchLoading = false;
-    }
+  const handleTireDimensionSearch = (parsedDimension) => {
+    if (!parsedDimension?.width || !parsedDimension?.ratio || !parsedDimension?.diameter) return;
+    const params = new URLSearchParams({
+      width: parsedDimension.width,
+      ratio: parsedDimension.ratio,
+      diameter: parsedDimension.diameter,
+    });
+    window.location.href = `/shop.html?${params.toString()}`;
   };
 
   return (
@@ -213,12 +145,9 @@ function HeroV2() {
             label="Sök på regnummer"
             dark
             help="Visar däck och fälg som passar din bil."
-            onSearch={async (plate) => {
-              const response = await fetch(`/api/products?plate=${encodeURIComponent(plate.toUpperCase())}`);
-              const data = await response.json();
-              if (data.products) {
-                window.searchResults = { car: data.car, products: data.products };
-                window.dispatchEvent(new CustomEvent('search-results-updated'));
+            onSearch={(plate) => {
+              if (plate && plate.trim()) {
+                window.location.href = `/shop.html?plate=${encodeURIComponent(plate.toUpperCase())}`;
               }
             }}
           />

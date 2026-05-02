@@ -62,6 +62,19 @@ function ShopPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [seasonFilter, setSeasonFilter] = useState(null);
+  const [brandFilter, setBrandFilter] = useState('');
+  const [speedFilter, setSpeedFilter] = useState('');
+  const [loadFilter, setLoadFilter] = useState('');
+  const [rrFilter, setRrFilter] = useState('');         // Rolling resistance grade
+  const [wgFilter, setWgFilter] = useState('');         // Wet grip grade
+  const [maxNoise, setMaxNoise] = useState('');
+  const [propXL, setPropXL] = useState(false);
+  const [propRunflat, setPropRunflat] = useState(false);
+  const [propSilent, setPropSilent] = useState(false);
+  const [propEV, setPropEV] = useState(false);
+  const [propStudded, setPropStudded] = useState(false);
+  const [propSnow, setPropSnow] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [showManualSearch, setShowManualSearch] = useState(false);
   const [width, setWidth] = useState('');
   const [ratio, setRatio] = useState('');
@@ -239,9 +252,44 @@ function ShopPage() {
     performSearch(plate);
   };
 
-  const filteredProducts = seasonFilter
-    ? products.filter(p => p.seasonTypeId === seasonFilter)
-    : products;
+  // Available filter options derived from current results
+  const availableBrands = [...new Set(products.map(p => p.brand).filter(Boolean))].sort();
+  const availableSpeeds = [...new Set(products.map(p => p.speedIndex).filter(Boolean))].sort();
+  const availableLoads = [...new Set(products.map(p => p.loadIndex).filter(Boolean))].sort();
+  const grades = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+  const filteredProducts = products.filter(p => {
+    if (seasonFilter && p.seasonTypeId !== seasonFilter) return false;
+    if (brandFilter && p.brand !== brandFilter) return false;
+    if (speedFilter && p.speedIndex !== speedFilter) return false;
+    if (loadFilter && p.loadIndex !== loadFilter) return false;
+    if (rrFilter && p.rollingResistance !== rrFilter) return false;
+    if (wgFilter && p.wetGrip !== wgFilter) return false;
+    if (maxNoise && p.noiseDecibel && Number(p.noiseDecibel) > Number(maxNoise)) return false;
+    if (propXL && !p.isEnforced) return false;
+    if (propRunflat && !p.isRunflat) return false;
+    if (propSilent && !p.isSilence) return false;
+    if (propEV && !p.isElectricVehicle) return false;
+    if (propStudded && !p.isStudded) return false;
+    if (propSnow && !p.snowGrip) return false;
+    return true;
+  });
+
+  const clearAllFilters = () => {
+    setSeasonFilter(null);
+    setBrandFilter('');
+    setSpeedFilter('');
+    setLoadFilter('');
+    setRrFilter('');
+    setWgFilter('');
+    setMaxNoise('');
+    setPropXL(false);
+    setPropRunflat(false);
+    setPropSilent(false);
+    setPropEV(false);
+    setPropStudded(false);
+    setPropSnow(false);
+  };
 
   const t = translations[lang] || translations.sv;
 
@@ -306,64 +354,129 @@ function ShopPage() {
         </div>
       )}
 
-      {/* Season Filter */}
-      {products.length > 0 && (
-        <div style={{ marginBottom: '30px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <span style={{ fontSize: '14px', fontWeight: '600' }}>{t.season}:</span>
+      {/* Filters Panel */}
+      {products.length > 0 && (() => {
+        const seasonBtn = (id, label, emoji) => (
           <button
-            onClick={() => setSeasonFilter(null)}
+            onClick={() => setSeasonFilter(id)}
             style={{
-              padding: '8px 16px',
-              border: seasonFilter === null ? '2px solid #8BC53F' : '1px solid #d1d5db',
-              backgroundColor: seasonFilter === null ? '#f0fdf4' : 'white',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px'
+              padding: '8px 14px',
+              border: seasonFilter === id ? '2px solid #8BC53F' : '1px solid #d1d5db',
+              backgroundColor: seasonFilter === id ? '#f0fdf4' : 'white',
+              borderRadius: '6px', cursor: 'pointer', fontSize: '14px',
             }}
-          >
-            {t.all_types}
-          </button>
+          >{emoji} {label}</button>
+        );
+        const gradeBtn = (filter, setFilter, grade) => (
           <button
-            onClick={() => setSeasonFilter(1)}
+            key={grade}
+            onClick={() => setFilter(filter === grade ? '' : grade)}
             style={{
-              padding: '8px 16px',
-              border: seasonFilter === 1 ? '2px solid #8BC53F' : '1px solid #d1d5db',
-              backgroundColor: seasonFilter === 1 ? '#f0fdf4' : 'white',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px'
+              width: '32px', height: '32px',
+              border: filter === grade ? '2px solid #8BC53F' : '1px solid #d1d5db',
+              background: filter === grade ? '#1f2937' : 'white',
+              color: filter === grade ? 'white' : '#1f2937',
+              borderRadius: '4px', cursor: 'pointer',
+              fontSize: '14px', fontWeight: '700',
             }}
-          >
-            ☀️ {t.summer}
-          </button>
-          <button
-            onClick={() => setSeasonFilter(2)}
-            style={{
-              padding: '8px 16px',
-              border: seasonFilter === 2 ? '2px solid #8BC53F' : '1px solid #d1d5db',
-              backgroundColor: seasonFilter === 2 ? '#f0fdf4' : 'white',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            ❄️ {t.winter}
-          </button>
-          <button
-            onClick={() => setSeasonFilter(3)}
-            style={{
-              padding: '8px 16px',
-              border: seasonFilter === 3 ? '2px solid #8BC53F' : '1px solid #d1d5db',
-              backgroundColor: seasonFilter === 3 ? '#f0fdf4' : 'white',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            🍂 {t.all_season}
-          </button>
-        </div>
-      )}
+          >{grade}</button>
+        );
+        const propBox = (checked, setChecked, label) => (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+            <input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)} />
+            {label}
+          </label>
+        );
+        const sectionLabel = { fontSize: '11px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' };
+        return (
+          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '20px', marginBottom: '30px' }}>
+            {/* Top row: season + brand + clear */}
+            <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div>
+                <div style={sectionLabel}>{t.season || 'Däcktyp'}</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {seasonBtn(null, t.all_types || 'Alla', '')}
+                  {seasonBtn(1, t.summer || 'Sommar', '☀️')}
+                  {seasonBtn(2, t.winter || 'Vinter', '❄️')}
+                  {seasonBtn(3, t.all_season || 'Helår', '🍂')}
+                </div>
+              </div>
+              <div>
+                <div style={sectionLabel}>{lang === 'sv' ? 'Varumärke' : 'Brand'}</div>
+                <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)}
+                  style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', minWidth: '160px', background: 'white' }}>
+                  <option value="">{lang === 'sv' ? 'Alla' : 'All'}</option>
+                  {availableBrands.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+              <button onClick={() => setShowAdvanced(!showAdvanced)}
+                style={{ padding: '8px 14px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', background: 'white', textDecoration: 'underline' }}>
+                {showAdvanced
+                  ? (lang === 'sv' ? 'Visa färre filter ▴' : 'Show fewer filters ▴')
+                  : (lang === 'sv' ? 'Visa fler filter ▾' : 'Show more filters ▾')}
+              </button>
+              <button onClick={clearAllFilters}
+                style={{ padding: '8px 14px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', background: 'white' }}>
+                {lang === 'sv' ? 'Rensa filter' : 'Clear filters'}
+              </button>
+            </div>
+
+            {showAdvanced && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+                <div>
+                  <div style={sectionLabel}>{lang === 'sv' ? 'Hastighetsindex' : 'Speed index'}</div>
+                  <select value={speedFilter} onChange={e => setSpeedFilter(e.target.value)}
+                    style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', width: '100%', background: 'white' }}>
+                    <option value="">{lang === 'sv' ? 'Alla' : 'All'}</option>
+                    {availableSpeeds.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={sectionLabel}>{lang === 'sv' ? 'Belastningsindex' : 'Load index'}</div>
+                  <select value={loadFilter} onChange={e => setLoadFilter(e.target.value)}
+                    style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', width: '100%', background: 'white' }}>
+                    <option value="">{lang === 'sv' ? 'Alla' : 'All'}</option>
+                    {availableLoads.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={sectionLabel}>{lang === 'sv' ? 'Rullmotstånd' : 'Rolling resistance'}</div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {grades.map(g => gradeBtn(rrFilter, setRrFilter, g))}
+                  </div>
+                </div>
+                <div>
+                  <div style={sectionLabel}>{lang === 'sv' ? 'Våtgrepp' : 'Wet grip'}</div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {grades.map(g => gradeBtn(wgFilter, setWgFilter, g))}
+                  </div>
+                </div>
+                <div>
+                  <div style={sectionLabel}>{lang === 'sv' ? 'Bullernivå max (dB)' : 'Max noise (dB)'}</div>
+                  <input type="number" value={maxNoise} onChange={e => setMaxNoise(e.target.value)}
+                    placeholder={lang === 'sv' ? 'Alla' : 'All'}
+                    style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', width: '100%' }} />
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <div style={sectionLabel}>{lang === 'sv' ? 'Egenskaper' : 'Properties'}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {propBox(propXL, setPropXL, 'XL')}
+                    {propBox(propRunflat, setPropRunflat, lang === 'sv' ? 'Punkteringssäkra' : 'Run-flat')}
+                    {propBox(propSilent, setPropSilent, lang === 'sv' ? 'Akustiska däck' : 'Silent')}
+                    {propBox(propEV, setPropEV, 'EV')}
+                    {propBox(propStudded, setPropStudded, lang === 'sv' ? 'Dubbade' : 'Studded')}
+                    {propBox(propSnow, setPropSnow, lang === 'sv' ? '3PMSF (snögrepp)' : '3PMSF (snow)')}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginTop: '12px', fontSize: '13px', color: '#6b7280' }}>
+              {lang === 'sv' ? 'Visar' : 'Showing'} {filteredProducts.length} / {products.length} {lang === 'sv' ? 'produkter' : 'products'}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Error Message */}
       {error && (
