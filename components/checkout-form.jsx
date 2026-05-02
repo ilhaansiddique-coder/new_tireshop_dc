@@ -3,7 +3,7 @@
 const { useState, useEffect } = React;
 const { IconCheck, IconAlertCircle } = DCIcons;
 
-function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) {
+function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null, onDeliveryOptionChange = null, submitRef = null, hideActions = false }) {
   const [lang, setLang] = useState(window.DC_LANG?.current || 'sv');
   const [customerType, setCustomerType] = useState('person');
   const [useProfile, setUseProfile] = useState(false);
@@ -28,7 +28,7 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
     };
   });
 
-  const [deliveryOption, setDeliveryOption] = useState('0');
+  const [deliveryOption, setDeliveryOption] = useState('1');
   const [errors, setErrors] = useState({});
 
   const translations = {
@@ -112,14 +112,12 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
     const newErrors = {};
 
     if (!formData.name?.trim()) newErrors.name = t.required;
+    if (!formData.email?.trim()) newErrors.email = t.required;
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t.invalidEmail;
     if (!formData.phone?.trim()) newErrors.phone = t.required;
     if (!formData.address1?.trim()) newErrors.address1 = t.required;
     if (!formData.postal_code?.trim()) newErrors.postal_code = t.required;
     if (!formData.city?.trim()) newErrors.city = t.required;
-
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = t.invalidEmail;
-    }
 
     if (formData.phone && !/^[\d\s\-+()]*$/.test(formData.phone)) {
       newErrors.phone = t.invalidPhone;
@@ -220,6 +218,23 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
 
   const formRef = React.useRef(null);
 
+  // Expose handleSubmit to parent via submitRef
+  React.useEffect(() => {
+    if (submitRef) submitRef.current = handleSubmit;
+  });
+
+  const toggleBtn = (active) => ({
+    padding: '8px 20px',
+    border: active ? '2px solid #8bc53f' : '2px solid #e5e7eb',
+    background: active ? '#8bc53f' : 'white',
+    color: active ? 'white' : '#374151',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '500',
+    fontSize: '14px',
+    transition: 'all 0.15s'
+  });
+
   return (
     <form className="checkout-form" onSubmit={handleSubmit} ref={formRef}>
       {/* Show profile selector if profile exists */}
@@ -246,27 +261,13 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
         {/* Customer Type */}
         <div className="form-group">
           <label>{t.customerType}</label>
-          <div className="radio-group">
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="customerType"
-                value="person"
-                checked={customerType === 'person'}
-                onChange={(e) => setCustomerType(e.target.value)}
-              />
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button type="button" style={toggleBtn(customerType === 'person')} onClick={() => setCustomerType('person')}>
               {t.person}
-            </label>
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="customerType"
-                value="business"
-                checked={customerType === 'business'}
-                onChange={(e) => setCustomerType(e.target.value)}
-              />
+            </button>
+            <button type="button" style={toggleBtn(customerType === 'business')} onClick={() => setCustomerType('business')}>
               {t.business}
-            </label>
+            </button>
           </div>
         </div>
 
@@ -292,6 +293,7 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
         <div className="form-group">
           <label htmlFor="email">
             {t.email}
+            <span className="required">*</span>
           </label>
           <input
             type="email"
@@ -455,40 +457,26 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
       {/* Delivery Options */}
       <fieldset className="form-section">
         <legend>{t.deliveryOptions}</legend>
-        <label className="radio-label" style={{ cursor: 'pointer' }}>
-          <input
-            type="radio"
-            name="delivery"
-            value="0"
-            checked={deliveryOption === '0'}
-            onChange={(e) => {
-              console.log('🚚 Delivery option changed to:', e.target.value);
-              setDeliveryOption(e.target.value);
-              if (formData.postal_code && formData.postal_code.length >= 5 && onPostalCodeChange) {
-                onPostalCodeChange(formData.postal_code, formData.city, formData.address1, e.target.value);
-              }
-            }}
-            style={{ cursor: 'pointer' }}
-          />
-          {t.pickup} {lang === 'sv' ? '(Värkstad)' : '(Workshop)'}
-        </label>
-        <label className="radio-label" style={{ cursor: 'pointer' }}>
-          <input
-            type="radio"
-            name="delivery"
-            value="1"
-            checked={deliveryOption === '1'}
-            onChange={(e) => {
-              console.log('🚚 Delivery option changed to:', e.target.value);
-              setDeliveryOption(e.target.value);
-              if (formData.postal_code && formData.postal_code.length >= 5 && onPostalCodeChange) {
-                onPostalCodeChange(formData.postal_code, formData.city, formData.address1, e.target.value);
-              }
-            }}
-            style={{ cursor: 'pointer' }}
-          />
-          {lang === 'sv' ? 'Hemleverans' : 'Home Delivery'}
-        </label>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button type="button" style={toggleBtn(deliveryOption === '0')} onClick={() => {
+            setDeliveryOption('0');
+            onDeliveryOptionChange?.('0');
+            if (formData.postal_code && formData.postal_code.length >= 5 && onPostalCodeChange) {
+              onPostalCodeChange(formData.postal_code, formData.city, formData.address1, '0');
+            }
+          }}>
+            {t.pickup}
+          </button>
+          <button type="button" style={toggleBtn(deliveryOption === '1')} onClick={() => {
+            setDeliveryOption('1');
+            onDeliveryOptionChange?.('1');
+            if (formData.postal_code && formData.postal_code.length >= 5 && onPostalCodeChange) {
+              onPostalCodeChange(formData.postal_code, formData.city, formData.address1, '1');
+            }
+          }}>
+            {lang === 'sv' ? 'Hemleverans' : 'Home Delivery'}
+          </button>
+        </div>
       </fieldset>
 
       {/* Save Profile */}
@@ -505,27 +493,25 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
       </div>
 
       {/* Submit Buttons */}
-      <div className="form-actions">
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={loading}
-          onClick={(e) => {
-            console.log('🖱️ Submit button clicked');
-            console.log('📝 Triggering form submission directly...');
-            handleSubmit({ preventDefault: () => {} });
-          }}
-        >
-          {loading ? '...' : t.completeOrder}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={() => window.history.back()}
-        >
-          {t.cancel}
-        </button>
-      </div>
+      {!hideActions && (
+        <div className="form-actions">
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={loading}
+            onClick={() => handleSubmit({ preventDefault: () => {} })}
+          >
+            {loading ? '...' : t.completeOrder}
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => window.history.back()}
+          >
+            {t.cancel}
+          </button>
+        </div>
+      )}
 
       <style>{`
         .checkout-form {
@@ -534,11 +520,17 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
         }
 
         .form-section {
-          margin-bottom: 32px;
-          padding: 24px;
+          margin-bottom: 20px;
+          padding: 20px;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
           background: #f9fafb;
+        }
+
+        @media (max-width: 480px) {
+          .form-section { padding: 14px; margin-bottom: 14px; }
+          .checkout-form { max-width: 100%; }
+          .form-actions { flex-direction: column; }
         }
 
         .form-section legend {
@@ -601,7 +593,7 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
 
         input:focus {
           outline: none;
-          border-color: var(--color-accent, #10b981);
+          border-color: var(--color-accent, #8bc53f);
           box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
@@ -639,7 +631,10 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
           -webkit-user-select: none;
         }
 
-        .radio-label:hover,
+        .radio-label:hover {
+          background-color: rgba(16, 185, 129, 0.04);
+        }
+
         .checkbox-label:hover {
           background-color: rgba(16, 185, 129, 0.05);
         }
@@ -652,7 +647,7 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
           min-width: 20px;
           min-height: 20px;
           flex-shrink: 0;
-          accent-color: var(--color-accent, #10b981);
+          accent-color: var(--color-accent, #8bc53f);
         }
 
         .form-actions {
@@ -672,7 +667,7 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
         }
 
         .btn-primary {
-          background: var(--color-accent, #10b981);
+          background: var(--color-accent, #8bc53f);
           color: white;
         }
 
@@ -687,12 +682,12 @@ function CheckoutForm({ onSubmit, loading = false, onPostalCodeChange = null }) 
 
         .btn-secondary {
           background: transparent;
-          color: var(--color-accent, #10b981);
-          border: 1px solid var(--color-accent, #10b981);
+          color: var(--color-accent, #8bc53f);
+          border: 1px solid var(--color-accent, #8bc53f);
         }
 
         .btn-secondary:hover {
-          background: var(--color-accent, #10b981);
+          background: var(--color-accent, #8bc53f);
           color: white;
         }
       `}</style>

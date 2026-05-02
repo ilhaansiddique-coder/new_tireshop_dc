@@ -75,7 +75,7 @@ function CartDrawer() {
 
   const handleCheckout = () => {
     setIsOpen(false);
-    window.location.href = '/checkout.html';
+    window.location.href = '/checkout';
   };
 
   const formatPrice = (priceOre) => {

@@ -1,18 +1,26 @@
 /* global React, DCIcons */
 
-const { IconX, IconTrash, IconMinus, IconPlus } = DCIcons;
+const { IconX, IconMinus, IconPlus } = DCIcons;
 
 function MiniCart() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [cart, setCart] = React.useState({ items: [], subtotal: 0 });
+  const [cart, setCart] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem('dc_shopping_cart');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return window.CartManager?.getCart?.() || { items: [], subtotal: 0 };
+  });
+
+  React.useEffect(() => {
+    if (window.CartManager) setCart(window.CartManager.getCart());
+  }, []);
 
   React.useEffect(() => {
     if (!window.CartManager?.subscribe) return;
-
     const unsubscribe = window.CartManager.subscribe((updatedCart) => {
       setCart(updatedCart);
     });
-
     return () => unsubscribe?.();
   }, []);
 
@@ -101,11 +109,9 @@ function MiniCart() {
                     <div className="cart-item-details">
                       <h4>{item.name}</h4>
                       <p className="cart-item-price">{formatPrice(item.price)}</p>
-                      {item.attrs && Object.keys(item.attrs).length > 0 && (
+                      {item.attrs?.dimension && !String(item.attrs.dimension).includes('undefined') && (
                         <div className="cart-item-attrs">
-                          {item.attrs.dimension && (
-                            <span className="attr">{item.attrs.dimension}</span>
-                          )}
+                          <span className="attr">{item.attrs.dimension}</span>
                         </div>
                       )}
                     </div>
@@ -122,17 +128,12 @@ function MiniCart() {
                         <button
                           onClick={() => handleQuantityChange(item, item.quantity + 1)}
                           aria-label="Öka antal"
+                          disabled={item.stock > 0 && item.quantity >= item.stock}
+                          style={{ opacity: (item.stock > 0 && item.quantity >= item.stock) ? 0.35 : 1, cursor: (item.stock > 0 && item.quantity >= item.stock) ? 'not-allowed' : 'pointer' }}
                         >
                           <IconPlus size={16} />
                         </button>
                       </div>
-                      <button
-                        className="remove-btn"
-                        onClick={() => handleRemoveItem(item)}
-                        aria-label="Ta bort från varukorg"
-                      >
-                        <IconTrash size={16} />
-                      </button>
                     </div>
                   </div>
                 );
@@ -160,7 +161,7 @@ function MiniCart() {
             <button
               className="btn btn-checkout"
               onClick={() => {
-                window.location.href = '/checkout.html';
+                window.location.href = '/checkout';
               }}
             >
               Gå till kassa

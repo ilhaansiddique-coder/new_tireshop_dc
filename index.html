@@ -97,38 +97,11 @@
 </head>
 <body class="loading-page">
 <script>
-  console.log('PAGE LOADED AT:', new Date().toISOString());
-  window.DEBUG = true;
-
-  // Hide loader when page is ready
-  function hidePageLoader() {
-    const loader = document.getElementById('page-loader');
-    if (loader) {
-      loader.classList.add('hidden');
-      document.body.classList.remove('loading-page');
-    }
-  }
-
-  // Hide loader after min delay to show it was there
-  window.pageLoaderReady = false;
+  // Fallback: hide loader after 5s in case React fails to render
   setTimeout(() => {
-    window.pageLoaderReady = true;
-    if (document.readyState === 'complete') {
-      hidePageLoader();
-    }
-  }, 800);
-
-  // Hide loader when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.pageLoaderReady) hidePageLoader();
-    });
-  }
-
-  // Hide loader when everything is loaded
-  window.addEventListener('load', () => {
-    if (window.pageLoaderReady) hidePageLoader();
-  });
+    const loader = document.getElementById('page-loader');
+    if (loader) { loader.classList.add('hidden'); document.body.classList.remove('loading-page'); }
+  }, 5000);
 </script>
 
 <!-- Page Loader -->
@@ -175,58 +148,12 @@
 <script type="text/babel" src="components/sections.jsx"></script>
 <script type="text/babel" src="app.jsx"></script>
 
-<!-- Simple test without JSX -->
-<script>
-  setTimeout(() => {
-    console.log('💡 Testing React...');
-    try {
-      const root = document.getElementById('root');
-      console.log('Root element:', root);
-      console.log('Root innerHTML length:', root?.innerHTML.length);
-
-      if (root && root.innerHTML.length === 0) {
-        console.error('❌ Root is empty - React did not render!');
-      } else {
-        console.log('✅ Root has content - Page loaded successfully!');
-      }
-    } catch (e) {
-      console.error('❌ Test error:', e);
-    }
-  }, 3000); // Check after app has rendered
-</script>
-
 <!-- Render mini cart in header -->
 <script type="text/babel">
   setTimeout(() => {
-    console.log('Rendering mini cart...');
     const root = document.getElementById('mini-cart-root');
-    if (root) {
-      ReactDOM.createRoot(root).render(<DCMiniCart/>);
-      console.log('✅ Mini cart rendered');
-    }
-  }, 2500);
-</script>
-
-<!-- Diagnostic script -->
-<script>
-  setTimeout(() => {
-    console.log('=== Component Check ===');
-    console.log('DCHeader:', typeof window.DCHeader);
-    console.log('DCTopBar:', typeof window.DCTopBar);
-    console.log('DCSections:', typeof window.DCSections);
-    console.log('DCHero:', typeof window.DCHero);
-    console.log('useTweaks:', typeof window.useTweaks);
-    console.log('TweaksPanel:', typeof window.TweaksPanel);
-    console.log('React:', typeof window.React);
-    console.log('ReactDOM:', typeof window.ReactDOM);
-
-    const rootEl = document.getElementById('root');
-    console.log('Root element:', rootEl);
-    if (rootEl) {
-      console.log('Root children:', rootEl.children.length);
-      console.log('Root HTML:', rootEl.innerHTML.substring(0, 100));
-    }
-  }, 500);
+    if (root) ReactDOM.createRoot(root).render(<DCMiniCart/>);
+  }, 200);
 </script>
 
 </body>

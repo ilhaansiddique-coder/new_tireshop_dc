@@ -32,6 +32,7 @@ function SearchResults() {
         image: product.image,
         supplier_id: product.supplier_id,
         location_id: product.location_id,
+        stock: product.stock || 0,
         attrs: {
           brand: product.brand,
           dimension: product.dimension

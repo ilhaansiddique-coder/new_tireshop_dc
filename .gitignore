@@ -57,3 +57,9 @@ frontendClaude/.next/
 
 .vercel
 .env*.local
+
+# Runtime state with user data — should not be committed
+bookings.json
+
+# Editor backups
+*.bak

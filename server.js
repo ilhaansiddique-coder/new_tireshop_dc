@@ -550,7 +550,7 @@ function generateBasicAuth(key, secret) {
 // POST /api/qliro/create-checkout — Create Qliro checkout session
 app.post("/api/qliro/create-checkout", async (req, res) => {
   try {
-    const { customerData, cartItems, deliveryOption } = req.body;
+    const { customerData, cartItems, deliveryOption, shipping } = req.body;
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ error: "Cart is empty" });
@@ -580,7 +580,7 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
       MerchantTermsUrl: `${BASE_URL}/terms.html`,
       MerchantCheckoutStatusPushUrl: `${BASE_URL}/api/qliro/callback?token=${callbackToken}`,
       OrderItems: cartItems.map((item) => ({
-        MerchantReference: item.productId.toString(),
+        MerchantReference: (item.productId || item.id || '').toString(),
         Description: item.name,
         Type: "Product",
         Quantity: item.quantity,
@@ -631,6 +631,7 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
           // Create EonTyre order immediately
           (async () => {
             try {
+              console.log(`[Qliro] Mock IIFE: starting EonTyre order. customerData keys: ${Object.keys(mockPending.customerData || {}).join(',')}`);
               const eontryeOrder = {
                 customer: {
                   type: mockPending.customerData.type || 2,
@@ -653,6 +654,9 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
                 delivery_option: mockPending.deliveryOption || 0,
               };
 
+              console.log(`[Qliro] Mock IIFE: calling EonTyre API at ${EONTYRE_API_URL}/api/v2/orders`);
+              const eontryeController = new AbortController();
+              const eontryeTimeout = setTimeout(() => eontryeController.abort(), 15000);
               const eontryeResponse = await fetch(`${EONTYRE_API_URL}/api/v2/orders`, {
                 method: "POST",
                 headers: {
@@ -660,15 +664,29 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
                   "Api-Key": API_KEY,
                 },
                 body: JSON.stringify(eontryeOrder),
+                signal: eontryeController.signal,
               });
-
+              clearTimeout(eontryeTimeout);
+              console.log(`[Qliro] Mock IIFE: EonTyre response status ${eontryeResponse.status}`);
               const eontryeData = await eontryeResponse.json();
+              if (!eontryeResponse.ok || eontryeData.err) {
+                console.error(`[EonTyre] Order creation failed: ${eontryeResponse.status} — ${eontryeData.err || JSON.stringify(eontryeData).substring(0, 300)}`);
+              }
               if (eontryeResponse.ok && !eontryeData.err) {
+                const eontryeOrderId = eontryeData.data?.id;
                 mockPending.eontyre = {
-                  orderId: eontryeData.data?.id,
+                  orderId: eontryeOrderId,
                   bookingUrl: eontryeData.data?.booking_url,
                 };
-                console.log(`[Qliro] Mock payment: EonTyre order created ${eontryeData.data?.id}`);
+                console.log(`[Qliro] Mock payment: EonTyre order created ${eontryeOrderId}`);
+
+                // Book courier for home delivery
+                if (mockPending.deliveryOption === 1 && mockPending.shipping) {
+                  const fraktjaktResult = await bookFraktjaktShipment(mockPending, eontryeOrderId);
+                  if (fraktjaktResult) mockPending.fraktjakt = fraktjaktResult;
+                } else {
+                  console.log(`[Qliro] Mock payment: Pickup order — skipping Fraktjakt`);
+                }
               }
             } catch (err) {
               console.error(`[Qliro] Mock payment: Error creating EonTyre order`, err.message);
@@ -741,13 +759,71 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
           </div>
         `;
 
-        // Auto-complete payment in test mode
-        setTimeout(() => {
+        // Auto-complete payment in test mode — run the full post-payment flow
+        setTimeout(async () => {
           const mockPending = pendingOrders.get(pendingId);
-          if (mockPending && mockPending.status === "pending") {
-            console.log(`[Qliro] Auto-completing fallback payment for: ${pendingId}`);
+          if (!mockPending || mockPending.status !== "pending") return;
+
+          console.log(`[Qliro] Auto-completing fallback payment for: ${pendingId}`);
+          mockPending.qliroPaymentId = `mock-payment-${uuidv4()}`;
+
+          // Create EonTyre order
+          try {
+            const eontryeOrder = {
+              customer: {
+                type: mockPending.customerData.type || 2,
+                name: mockPending.customerData.name,
+                address1: mockPending.customerData.address1 || "",
+                address2: mockPending.customerData.address2 || "",
+                postal_code: mockPending.customerData.postal_code || "",
+                city: mockPending.customerData.city || "",
+                country: "SE",
+                email: mockPending.customerData.email || "",
+                phone: mockPending.customerData.phone,
+                update: true,
+              },
+              products: mockPending.cartItems.map((item) => ({
+                id: item.productId || item.sku || item.id,
+                quantity: item.quantity,
+                ...(item.supplier_id && { supplier: item.supplier_id }),
+                ...(item.location_id && { location: item.location_id }),
+              })),
+              delivery_option: mockPending.deliveryOption || 0,
+            };
+
+            console.log(`[Qliro Mock] Creating EonTyre order...`);
+            const eontryeResponse = await fetch(`${EONTYRE_API_URL}/api/v2/orders`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Api-Key": API_KEY },
+              body: JSON.stringify(eontryeOrder),
+            });
+            const eontryeData = await eontryeResponse.json();
+
+            if (!eontryeResponse.ok || eontryeData.err) {
+              throw new Error(`EonTyre error: ${eontryeData.err || eontryeResponse.status}`);
+            }
+
+            const eontryeOrderId = eontryeData.data?.id;
+            console.log(`[Qliro Mock] EonTyre order created: ${eontryeOrderId}`);
+
+            // Book courier for home delivery
+            let fraktjaktResult = null;
+            if (mockPending.deliveryOption === 1 && mockPending.shipping) {
+              fraktjaktResult = await bookFraktjaktShipment(mockPending, eontryeOrderId);
+            } else {
+              console.log(`[Qliro Mock] Pickup order — skipping Fraktjakt`);
+            }
+
             mockPending.status = "paid";
-            mockPending.qliroPaymentId = `mock-payment-${uuidv4()}`;
+            mockPending.eontyre = {
+              orderId: eontryeOrderId,
+              bookingUrl: eontryeData.data?.booking_url,
+            };
+            if (fraktjaktResult) mockPending.fraktjakt = fraktjaktResult;
+
+          } catch (err) {
+            console.error(`[Qliro Mock] EonTyre order failed:`, err.message);
+            mockPending.status = "paid"; // still mark paid so UI moves forward
           }
         }, 3000);
       }
@@ -758,6 +834,7 @@ app.post("/api/qliro/create-checkout", async (req, res) => {
       customerData,
       cartItems,
       deliveryOption,
+      shipping: shipping || null,
       qliroOrderId,
       callbackToken,
       status: "pending",
@@ -846,15 +923,27 @@ app.post("/api/qliro/callback", async (req, res) => {
         throw new Error(`EonTyre error: ${eontryeData.err || eontryeResponse.status}`);
       }
 
-      console.log(`[Qliro Callback] EonTyre order created: ${eontryeData.data?.id}`);
+      const eontryeOrderId = eontryeData.data?.id;
+      console.log(`[Qliro Callback] EonTyre order created: ${eontryeOrderId}`);
 
-      // Update pending order with EonTyre response
+      // Book courier shipment for home delivery orders
+      let fraktjaktResult = null;
+      if (pending.deliveryOption === 1 && pending.shipping) {
+        fraktjaktResult = await bookFraktjaktShipment(pending, eontryeOrderId);
+      } else {
+        console.log(`[Qliro Callback] Pickup order — skipping Fraktjakt booking`);
+      }
+
+      // Update pending order with results
       pending.status = "paid";
       pending.qliroPaymentId = OrderId;
       pending.eontyre = {
-        orderId: eontryeData.data?.id,
+        orderId: eontryeOrderId,
         bookingUrl: eontryeData.data?.booking_url,
       };
+      if (fraktjaktResult) {
+        pending.fraktjakt = fraktjaktResult;
+      }
     } catch (err) {
       console.error(`[Qliro Callback] Failed to create EonTyre order:`, err.message);
       pending.status = "payment_confirmed_eontyre_pending";
@@ -883,6 +972,8 @@ app.get("/api/qliro/status/:pendingId", (req, res) => {
       bookingUrl: pending.eontyre?.bookingUrl,
       orderId: pending.eontyre?.orderId,
       qliroOrderId: pending.qliroOrderId,
+      tracking: pending.fraktjakt?.trackingUrl || null,
+      shippingLabel: pending.fraktjakt?.labelUrl || null,
     });
   } catch (err) {
     console.error("[Qliro Status] Error:", err.message);
@@ -895,19 +986,196 @@ app.get("/api/qliro/status/:pendingId", (req, res) => {
 // ============================================================================
 
 // Fallback shipping options if Fraktjakt fails
-const getFallbackShippingOptions = (deliveryOption) => {
-  if (deliveryOption === '0') {
-    return [
-      { id: "schenker", name: "Schenker Parcel Home", price: 89, delivery_time: "1-2 dagar" },
-      { id: "dhl-notification", name: "DHL Package with notification", price: 99, delivery_time: "1-2 dagar" },
-      { id: "dhl-home", name: "DHL home delivery", price: 129, delivery_time: "1 dag" }
-    ];
-  } else {
-    return [
-      { id: "postnord", name: "PostNord Varubrev", price: 49, delivery_time: "2-3 dagar" },
-      { id: "dhl", name: "DHL Paket", price: 99, delivery_time: "1-2 dagar" },
-      { id: "bring", name: "Bring Express", price: 129, delivery_time: "1 dag" }
-    ];
+const getFallbackShippingOptions = () => {
+  return [
+    { id: "postnord", name: "PostNord Varubrev", price: 49, delivery_time: "2-3 dagar" },
+    { id: "dhl", name: "DHL Paket", price: 99, delivery_time: "1-2 dagar" },
+    { id: "bring", name: "Bring Express", price: 129, delivery_time: "1 dag" }
+  ];
+};
+
+// XML-escape helper used by both booking modes
+const xmlEscape = (s) => String(s || "").replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FRAKTJAKT BOOKING MODE
+// ─────────────────────────────────────────────────────────────────────────────
+// Two ways to send shipments to Fraktjakt — switch by setting env var
+// FRAKTJAKT_BOOKING_MODE in .env.local (or Coolify env vars).
+//
+// Mode "shipment" (DEFAULT — what we use right now)
+//   → Calls Fraktjakt's Shipment API.
+//   → Creates a draft shipment in the Fraktjakt dashboard.
+//   → Admin manually picks the carrier (DHL/PostNord/etc) and pays in Fraktjakt UI.
+//   → Best while you're still tuning the integration — admin reviews each shipment.
+//   → The customer's shipping pick on our checkout page is IGNORED here
+//     (admin chooses again in Fraktjakt). That's fine for low volume.
+//
+// Mode "order" (Order API type 1 — for auto-booking later)
+//   → Calls Fraktjakt's Order API type 1.
+//   → Honors the carrier the customer chose at checkout (uses shipping_product_id).
+//   → Reuses the shipment_id Fraktjakt issued during the earlier Query API call
+//     (we attach it to each option in /api/shipping/query and the frontend passes
+//     it back inside the selected `shipping` object).
+//   → IMPORTANT: even in "order" mode the shipment still drops into Fraktjakt's
+//     cart unless you've enabled invoice/credit billing on consignor 39289.
+//     To get fully automatic label-buying, email api@fraktjakt.se and ask them
+//     to enable auto-pay/invoice billing on the account, then set this to "order".
+//
+// To switch: in Coolify (or .env.local) add  FRAKTJAKT_BOOKING_MODE=order  and redeploy.
+// If "order" mode is set but the shipment_id or product_id is missing
+// (e.g. fallback shipping options were used), it auto-falls-back to the Shipment API.
+// ─────────────────────────────────────────────────────────────────────────────
+const FRAKTJAKT_BOOKING_MODE = (process.env.FRAKTJAKT_BOOKING_MODE || "shipment").toLowerCase();
+
+// Mode 1: Shipment API — creates a shipment that admin selects service for in the Fraktjakt dashboard.
+const bookViaShipmentApi = async (pending, eontryeOrderId) => {
+  const { customerData, cartItems } = pending;
+  const articleNumber = cartItems[0]?.sku || cartItems[0]?.productId || "TYRE001";
+  const productName = cartItems[0]?.name || "Tyres";
+  const unitPrice = cartItems[0]?.price || 0;
+  const totalQuantity = cartItems.reduce((s, i) => s + i.quantity, 0);
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<CreateShipment>
+  <consignor>
+    <id>${FRAKTJAKT_ID}</id>
+    <key>${FRAKTJAKT_KEY}</key>
+    <currency>SEK</currency>
+    <language>en</language>
+    <encoding>UTF-8</encoding>
+    <system_name>Dackcentrum</system_name>
+    <module_version>1.0</module_version>
+    <api_version>4.10.0</api_version>
+  </consignor>
+  <reference>EONTYRE-${eontryeOrderId || ""}</reference>
+  <recipient>
+    <name_to>${xmlEscape(customerData.name)}</name_to>
+    <telephone_to>${xmlEscape(customerData.phone)}</telephone_to>
+    <email_to>${xmlEscape(customerData.email)}</email_to>
+  </recipient>
+  <address_to>
+    <street_address_1>${xmlEscape(customerData.address1)}</street_address_1>
+    <postal_code>${(customerData.postal_code || "").replace(/\s/g, "")}</postal_code>
+    <residential>1</residential>
+    <country_code>SE</country_code>
+    <language>sv</language>
+  </address_to>
+  <commodities>
+    <commodity>
+      <name>${xmlEscape(productName)}</name>
+      <quantity>${totalQuantity}</quantity>
+      <quantity_units>EA</quantity_units>
+      <description>Tyres</description>
+      <country_of_manufacture>SE</country_of_manufacture>
+      <weight>8</weight>
+      <length>63</length>
+      <width>63</width>
+      <height>25</height>
+      <unit_price>${unitPrice}</unit_price>
+      <shipped>1</shipped>
+      <in_own_parcel>false</in_own_parcel>
+      <article_number>${xmlEscape(articleNumber)}</article_number>
+    </commodity>
+  </commodities>
+</CreateShipment>`;
+
+  const shipmentUrl = `https://api.fraktjakt.se/shipments/shipment_xml?xml=${encodeURIComponent(xml)}`;
+  console.log(`[Fraktjakt] 📦 [Shipment API] Creating shipment for EonTyre order ${eontryeOrderId}...`);
+  const response = await fetch(shipmentUrl);
+  const responseText = await response.text();
+  console.log(`[Fraktjakt] 📬 Shipment response (first 800): ${responseText.substring(0, 800)}`);
+
+  if (!response.ok) throw new Error(`Fraktjakt shipment_xml returned ${response.status}`);
+
+  const errMatch = responseText.match(/<error_message>([^<]+)<\/error_message>/);
+  if (errMatch && errMatch[1].trim()) {
+    console.error(`[Fraktjakt] ❌ Shipment creation error: ${errMatch[1]}`);
+    return null;
+  }
+
+  return {
+    shipmentId: responseText.match(/<shipment_id>(\d+)<\/shipment_id>/)?.[1] || null,
+    labelUrl: responseText.match(/<access_link>([^<]+)<\/access_link>/)?.[1] || null,
+    trackingUrl: responseText.match(/<tracking_link>([^<]+)<\/tracking_link>/)?.[1] || null,
+  };
+};
+
+// Mode 2: Order API type 1 — confirms a Query API shipment with the customer's chosen shipping service.
+// Requires shipment.fraktjaktShipmentId (from Query API) and shipping_product_id (numeric, from "fraktjakt-NNN").
+const bookViaOrderApi = async (pending, eontryeOrderId) => {
+  const { customerData, shipping } = pending;
+  const fraktjaktShipmentId = shipping?.fraktjaktShipmentId;
+  const shippingProductId = shipping?.id ? String(shipping.id).replace("fraktjakt-", "") : "";
+
+  if (!fraktjaktShipmentId || !shippingProductId || !/^\d+$/.test(shippingProductId)) {
+    console.warn(`[Fraktjakt] Order API needs both shipment_id (${fraktjaktShipmentId}) and numeric shipping_product_id (${shippingProductId}); falling back to Shipment API`);
+    return bookViaShipmentApi(pending, eontryeOrderId);
+  }
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<OrderSpecification>
+  <consignor>
+    <id>${FRAKTJAKT_ID}</id>
+    <key>${FRAKTJAKT_KEY}</key>
+    <currency>SEK</currency>
+    <language>en</language>
+    <encoding>utf-8</encoding>
+    <system_name>Dackcentrum</system_name>
+    <module_version>1.0</module_version>
+    <api_version>4.10.0</api_version>
+  </consignor>
+  <shipment_id>${fraktjaktShipmentId}</shipment_id>
+  <shipping_product_id>${shippingProductId}</shipping_product_id>
+  <reference>EONTYRE-${eontryeOrderId || ""}</reference>
+  <recipient>
+    <name_to>${xmlEscape(customerData.name)}</name_to>
+    <telephone_to>${xmlEscape(customerData.phone)}</telephone_to>
+    <email_to>${xmlEscape(customerData.email)}</email_to>
+    <mobile_to>${xmlEscape(customerData.phone)}</mobile_to>
+  </recipient>
+</OrderSpecification>`;
+
+  const orderUrl = `https://api.fraktjakt.se/orders/order_xml?xml=${encodeURIComponent(xml)}`;
+  console.log(`[Fraktjakt] 📦 [Order API t1] Confirming shipment ${fraktjaktShipmentId} with product ${shippingProductId} for EonTyre order ${eontryeOrderId}...`);
+  const response = await fetch(orderUrl);
+  const responseText = await response.text();
+  console.log(`[Fraktjakt] 📬 Order response (first 800): ${responseText.substring(0, 800)}`);
+
+  if (!response.ok) throw new Error(`Fraktjakt orders/order_xml returned ${response.status}`);
+
+  const errMatch = responseText.match(/<error_message>([^<]+)<\/error_message>/);
+  if (errMatch && errMatch[1].trim()) {
+    console.error(`[Fraktjakt] ❌ Order API error: ${errMatch[1]}`);
+    return null;
+  }
+
+  return {
+    shipmentId: responseText.match(/<shipment_id>(\d+)<\/shipment_id>/)?.[1] || fraktjaktShipmentId,
+    labelUrl: responseText.match(/<access_link>([^<]+)<\/access_link>/)?.[1] || null,
+    trackingUrl: responseText.match(/<tracking_link>([^<]+)<\/tracking_link>/)?.[1] || null,
+  };
+};
+
+// Book a shipment with Fraktjakt after confirmed payment (home delivery only)
+const bookFraktjaktShipment = async (pending, eontryeOrderId) => {
+  if (!FRAKTJAKT_ID || !FRAKTJAKT_KEY) {
+    console.warn("[Fraktjakt] ⚠️ Credentials not configured — skipping shipment booking");
+    return null;
+  }
+
+  try {
+    const result = FRAKTJAKT_BOOKING_MODE === "order"
+      ? await bookViaOrderApi(pending, eontryeOrderId)
+      : await bookViaShipmentApi(pending, eontryeOrderId);
+
+    if (result) {
+      console.log(`[Fraktjakt] ✅ Shipment booked (mode=${FRAKTJAKT_BOOKING_MODE}): ID=${result.shipmentId}, access=${result.labelUrl}`);
+    }
+    return result;
+  } catch (err) {
+    console.error(`[Fraktjakt] ❌ Failed to book shipment:`, err.message);
+    return null;
   }
 };
 
@@ -920,39 +1188,33 @@ const queryFraktjaktAPI = async (postalCode, city, address, items, deliveryOptio
     const totalWeight = items.reduce((sum, item) => sum + (item.quantity * 8), 0); // 8kg per tire
     const articleNumber = items[0]?.sku || items[0]?.productId || 'TYRE001';
 
+    const totalValue = items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<fraktjakt api_version="2">
+<shipment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <value>${totalValue.toFixed(2)}</value>
+  <shipper_info>1</shipper_info>
   <consignor>
     <id>${FRAKTJAKT_ID}</id>
     <key>${FRAKTJAKT_KEY}</key>
+    <currency>SEK</currency>
+    <language>en</language>
   </consignor>
-  <shipment>
-    <address_from>${SHOP_ORIGIN_STREET}</address_from>
-    <zipcode_from>${SHOP_ORIGIN_POSTAL}</zipcode_from>
-    <city_from>${SHOP_ORIGIN_CITY}</city_from>
-    <country_from>SE</country_from>
-    <address_to>${address || "Hemadress"}</address_to>
-    <zipcode_to>${postalCode.replace(/\s/g, '')}</zipcode_to>
-    <city_to>${city || ""}</city_to>
-    <country_to>SE</country_to>
-    <parcels>
-      <parcel>
-        <weight>${totalWeight}</weight>
-        <length>63</length>
-        <width>63</width>
-        <height>25</height>
-      </parcel>
-    </parcels>
-    <commodities>
-      <commodity>
-        <description>Tyres</description>
-        <code>40112000</code>
-        <amount>${items.length}</amount>
-        <article_number>${articleNumber}</article_number>
-      </commodity>
-    </commodities>
-  </shipment>
-</fraktjakt>`;
+  <parcels>
+    <parcel>
+      <weight>${totalWeight}</weight>
+      <length>63</length>
+      <width>63</width>
+      <height>25</height>
+    </parcel>
+  </parcels>
+  <address_to>
+    <street_address_1>${address || ""}</street_address_1>
+    <postal_code>${postalCode.replace(/\s/g, "")}</postal_code>
+    <city>${city || ""}</city>
+    <country_code>SE</country_code>
+  </address_to>
+</shipment>`;
 
     const encodedXml = encodeURIComponent(xml);
     const queryUrl = `${FRAKTJAKT_API_URL}/query_xml?xml=${encodedXml}`;
@@ -967,45 +1229,57 @@ const queryFraktjaktAPI = async (postalCode, city, address, items, deliveryOptio
       throw new Error(`Fraktjakt API error: ${response.status}`);
     }
 
-    // Parse XML response
+    console.log(`[Fraktjakt] Raw response (first 800): ${responseText.substring(0, 800)}`);
+
+    const errMatch = responseText.match(/<error_message>([^<]+)<\/error_message>/);
+    if (errMatch && errMatch[1].trim()) {
+      console.error(`[Fraktjakt] ❌ API error: ${errMatch[1]}`);
+      return getFallbackShippingOptions();
+    }
+
+    // Capture the Fraktjakt shipment_id from the query — needed for Order API type 1 booking later
+    const queryShipmentIdMatch = responseText.match(/<shipment_id>(\d+)<\/shipment_id>/);
+    const fraktjaktShipmentId = queryShipmentIdMatch?.[1] || null;
+
+    // Parse XML — response uses <shipping_products><shipping_product> elements
     const services = [];
-    const serviceMatches = responseText.match(/<shipping_service[^>]*>.*?<\/shipping_service>/gs) || [];
+    const productMatches = responseText.match(/<shipping_product>.*?<\/shipping_product>/gs) || [];
+    console.log(`[Fraktjakt] 📦 Found ${productMatches.length} shipping products in response (shipment_id=${fraktjaktShipmentId})`);
 
-    console.log(`[Fraktjakt] 📦 Found ${serviceMatches.length} service options in response`);
-
-    serviceMatches.slice(0, 10).forEach((serviceXml, idx) => {
+    productMatches.slice(0, 10).forEach((xml, idx) => {
       try {
-        const idMatch = serviceXml.match(/<id>(\d+)<\/id>/);
-        const nameMatch = serviceXml.match(/<name>([^<]+)<\/name>/);
-        const carrierMatch = serviceXml.match(/<carrier_name>([^<]+)<\/carrier_name>/);
-        const priceMatch = serviceXml.match(/<quoted_price>(\d+(?:\.\d{2})?)<\/quoted_price>/);
-        const deliveryMatch = serviceXml.match(/<delivery_time_description>([^<]+)<\/delivery_time_description>/);
+        const idMatch = xml.match(/<id>(\d+)<\/id>/);
+        const nameMatch = xml.match(/<name>([^<]+)<\/name>/);
+        const shipperMatch = xml.match(/<shipper>.*?<name>([^<]+)<\/name>.*?<\/shipper>/s);
+        const priceMatch = xml.match(/<price>(\d+(?:\.\d+)?)<\/price>/);
+        const arrivalMatch = xml.match(/<arrival_time>([^<]+)<\/arrival_time>/);
 
         if (idMatch && nameMatch && priceMatch) {
           services.push({
             id: `fraktjakt-${idMatch[1]}`,
             name: nameMatch[1],
-            carrier: carrierMatch ? carrierMatch[1] : "Unknown",
+            carrier: shipperMatch ? shipperMatch[1] : "Unknown",
             price: Math.round(parseFloat(priceMatch[1])),
-            delivery_time: deliveryMatch ? deliveryMatch[1] : "Beräknas enligt bud"
+            delivery_time: arrivalMatch ? arrivalMatch[1] : "Beräknas enligt bud",
+            fraktjaktShipmentId,
           });
           console.log(`[Fraktjakt] ✓ Service ${idx + 1}: ${nameMatch[1]} - ${Math.round(parseFloat(priceMatch[1]))} kr`);
         }
       } catch (e) {
-        console.error(`[Fraktjakt] ⚠️ Error parsing service ${idx}:`, e.message);
+        console.error(`[Fraktjakt] ⚠️ Error parsing product ${idx}:`, e.message);
       }
     });
 
     if (services.length === 0) {
-      console.warn(`[Fraktjakt] ⚠️ No services parsed from response, using fallback`);
-      return getFallbackShippingOptions(deliveryOption);
+      console.warn(`[Fraktjakt] ⚠️ No services parsed, using fallback`);
+      return getFallbackShippingOptions();
     }
 
     console.log(`[Fraktjakt] ✅ Successfully retrieved ${services.length} shipping options`);
     return services;
   } catch (err) {
     console.error(`[Fraktjakt] ❌ Error querying API:`, err.message);
-    return getFallbackShippingOptions(deliveryOption);
+    return getFallbackShippingOptions();
   }
 };
 
@@ -1035,7 +1309,7 @@ app.post("/api/shipping/query", async (req, res) => {
     // Check if Fraktjakt credentials are configured
     if (!FRAKTJAKT_ID || !FRAKTJAKT_KEY) {
       console.log(`[Shipping] ⚠️ Fraktjakt credentials not configured, using fallback`);
-      const fallback = getFallbackShippingOptions(delivery_option || '1');
+      const fallback = getFallbackShippingOptions();
       return res.json({ services: fallback });
     }
 
@@ -1048,7 +1322,7 @@ app.post("/api/shipping/query", async (req, res) => {
   } catch (err) {
     console.error(`[Shipping] ❌ Error:`, err.message);
     // Always return fallback services on error
-    const fallback = getFallbackShippingOptions('1');
+    const fallback = getFallbackShippingOptions();
     return res.status(200).json({ services: fallback });
   }
 });
@@ -1057,6 +1331,10 @@ app.post("/api/shipping/query", async (req, res) => {
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// Clean URL routes — redirect .html → clean path, serve file on clean path
+app.get("/checkout.html", (req, res) => res.redirect(301, "/checkout"));
+app.get("/checkout", (req, res) => res.sendFile(path.join(__dirname, "checkout.html")));
 
 // 404
 app.use((req, res) => {
