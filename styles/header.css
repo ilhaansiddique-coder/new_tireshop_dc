@@ -397,6 +397,11 @@ main {
     display: none;
   }
 
+  /* Topbar is hidden on mobile — pin header to viewport top instead of 38px */
+  .header {
+    top: 0 !important;
+  }
+
   .header-inner {
     padding: 12px 16px !important;
   }
