@@ -98,43 +98,47 @@ function Brand() {
 }
 
 const NAV_SV = [
-  { label: "Däck", active: true, mega: [
+  { label: "Däck", href: "dack.html", active: true, mega: [
     { name: "Sommardäck", tag: "Säsong" },
     { name: "Vinterdäck" }, { name: "Helårsdäck" },
     { name: "Begagnade däck" }, { name: "Kampanjer", tag: "Rea" }
   ]},
-  { label: "Fälg", mega: [
-    { name: "Stålfälg" }, { name: "Aluminiumfälg" }, { name: "DC Wheels", tag: "Nytt" }
+  { label: "Fälg", href: "falg.html", mega: [
+    { name: "Stålfälg" }, { name: "Aluminiumfälg" },
+    { name: "DC Wheels", tag: "Nytt", href: "dc-wheels.html" }
   ]},
-  { label: "Kompletta hjul" },
+  { label: "Kompletta hjul", href: "kompletta-hjul.html" },
   { label: "Tjänster", mega: [
     { name: "Däckskifte", href: "tjanst-dackskifte.html" },
     { name: "Balansering", href: "tjanst-balansering.html" },
     { name: "Punktering", href: "tjanst-punktering.html" },
     { name: "Lagning", href: "tjanst-lagning.html" },
     { name: "Hjulinställning", href: "tjanst-hjulinstallning.html" },
-    { name: "Fälgrenovering", href: "tjanst-falgservice.html" },
+    { name: "Fälgrenovering", href: "tjanst-falgrenovering.html" },
+    { name: "Fälgservice", href: "tjanst-falgservice.html" },
     { name: "Däckhotell", href: "dackhotell.html" }
   ]},
   { label: "DC Wheels", href: "dc-wheels.html" }
 ];
 
 const NAV_EN = [
-  { label: "Tyres", active: true, mega: [
+  { label: "Tyres", href: "dack.html", active: true, mega: [
     { name: "Summer Tyres", tag: "Season" },
     { name: "Winter Tyres" }, { name: "All-Season Tyres" },
     { name: "Used Tyres" }, { name: "Sale", tag: "Sale" }
   ]},
-  { label: "Rims", mega: [
-    { name: "Steel Rims" }, { name: "Aluminum Rims" }, { name: "DC Wheels", tag: "New" }
+  { label: "Rims", href: "falg.html", mega: [
+    { name: "Steel Rims" }, { name: "Aluminum Rims" },
+    { name: "DC Wheels", tag: "New", href: "dc-wheels.html" }
   ]},
-  { label: "Complete Wheels" },
+  { label: "Complete Wheels", href: "kompletta-hjul.html" },
   { label: "Services", mega: [
     { name: "Tyre Change", href: "tjanst-dackskifte.html" },
     { name: "Balancing", href: "tjanst-balansering.html" },
     { name: "Puncture Repair", href: "tjanst-punktering.html" },
     { name: "Repair", href: "tjanst-lagning.html" },
     { name: "Wheel Alignment", href: "tjanst-hjulinstallning.html" },
+    { name: "Rim Renovation", href: "tjanst-falgrenovering.html" },
     { name: "Rim Service", href: "tjanst-falgservice.html" },
     { name: "Tyre Hotel", href: "dackhotell.html" }
   ]},

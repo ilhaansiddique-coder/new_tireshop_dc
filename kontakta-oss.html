@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="sv" data-theme="light" data-accent="green">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Kontakta oss — Däckcentrum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles/tokens.css?v=16"/>
+<link rel="stylesheet" href="styles/header.css?v=16"/>
+<link rel="stylesheet" href="styles/sections.css?v=16"/>
+<link rel="stylesheet" href="styles/subpage.css?v=16"/>
+<style>
+  /* Page-specific */
+  .kx-hero { padding: 80px 0 56px; background: var(--bg-alt); border-bottom: 1px solid var(--line); }
+  .kx-hero h1 { font-size: clamp(48px, 7vw, 112px); line-height: .94; max-width: 14ch; margin-top: 14px; letter-spacing: -.02em; }
+  .kx-hero h1 em { font-style: italic; font-weight: 500; color: var(--accent-strong); }
+  .kx-hero .lede { font-size: 19px; color: var(--ink-3); line-height: 1.55; max-width: 56ch; margin-top: 24px; }
+
+  .kx-main { padding: var(--pad-section) 0; background: var(--bg); }
+  .kx-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 96px;
+    align-items: start;
+  }
+
+  /* Left rail — info */
+  .kx-info { display: grid; gap: 40px; }
+  .kx-block .eyebrow { display: inline-block; }
+  .kx-block h3 { font-size: 22px; margin-top: 12px; margin-bottom: 14px; letter-spacing: -.01em; }
+  .kx-block p, .kx-block .row { font-size: 16px; color: var(--ink-2); line-height: 1.55; }
+  .kx-block a { color: var(--ink); border-bottom: 1px solid var(--line); transition: border-color var(--t-fast), color var(--t-fast); }
+  .kx-block a:hover { color: var(--accent-strong); border-color: var(--accent-strong); }
+  .kx-hours { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; padding-top: 8px; }
+  .kx-hours .day { color: var(--ink-3); }
+  .kx-hours .time { font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  .kx-hours .closed { color: var(--ink-4); }
+
+  /* Map placeholder */
+  .kx-map {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--r-xl);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 30% 70%, rgba(48,87,32,.06), transparent 50%),
+      linear-gradient(180deg, var(--bg-warm), var(--bg-alt));
+    margin-top: 24px;
+  }
+  .kx-map .grid-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(0,0,0,.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0,0,0,.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .kx-map .road { position: absolute; background: rgba(0,0,0,.07); border-radius: 2px; }
+  .kx-map .r1 { left: 8%; right: 8%; top: 58%; height: 6px; }
+  .kx-map .r2 { left: 38%; top: 12%; bottom: 12%; width: 6px; }
+  .kx-map .pin {
+    position: absolute;
+    left: 38%; top: 58%;
+    transform: translate(-50%, -100%);
+    width: 44px; height: 44px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: 3px solid #fff;
+    border-radius: 50% 50% 50% 0;
+    rotate: -45deg;
+    box-shadow: var(--shadow-3);
+    display: grid; place-items: center;
+    animation: pinDrop .8s var(--ease-emph) both;
+  }
+  .kx-map .pin svg { rotate: 45deg; }
+  @keyframes pinDrop {
+    0%   { transform: translate(-50%, -180%) scale(.8); opacity: 0; }
+    100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+  }
+  .kx-map .ripple {
+    position: absolute;
+    left: 38%; top: 58%;
+    width: 16px; height: 16px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    animation: rip 2.4s var(--ease-emph) infinite;
+  }
+  @keyframes rip {
+    0%   { transform: translate(-50%, -50%) scale(.4); opacity: .8; }
+    100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+  }
+  .kx-map .label {
+    position: absolute; left: 24px; top: 24px;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-3);
+    background: rgba(255,255,255,.7);
+    padding: 6px 10px; border-radius: 999px; backdrop-filter: blur(8px);
+  }
+
+  /* Form card */
+  .kx-form-wrap {
+    background: var(--bg-warm);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    padding: 48px;
+    box-shadow: var(--shadow-1);
+    position: sticky; top: 32px;
+  }
+  .kx-form-wrap .eyebrow { display: inline-block; }
+  .kx-form-wrap h2 { font-size: clamp(28px, 3vw, 40px); margin-top: 12px; margin-bottom: 10px; letter-spacing: -.01em; }
+  .kx-form-wrap .sub { color: var(--ink-3); font-size: 15px; line-height: 1.55; margin-bottom: 32px; max-width: 48ch; }
+
+  .kx-form { display: grid; gap: 18px; }
+  .kx-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .kx-field { display: grid; gap: 8px; }
+  .kx-field label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+  .kx-field label .req { color: var(--accent-strong); margin-left: 4px; }
+  .kx-input, .kx-select, .kx-textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+    font-family: var(--font-body);
+  }
+  .kx-textarea { resize: vertical; min-height: 140px; line-height: 1.5; }
+  .kx-input:hover, .kx-select:hover, .kx-textarea:hover { border-color: var(--ink-4); }
+  .kx-input:focus, .kx-select:focus, .kx-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+    background: var(--bg);
+  }
+  .kx-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%231a1a1a' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+  }
+
+  .kx-consent {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 12px;
+    align-items: start;
+    font-size: 13px;
+    color: var(--ink-3);
+    line-height: 1.5;
+    margin-top: 6px;
+  }
+  .kx-consent input[type="checkbox"] {
+    appearance: none;
+    width: 20px; height: 20px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--bg);
+    margin-top: 1px;
+    cursor: pointer;
+    transition: border-color var(--t-fast), background var(--t-fast);
+    display: grid; place-items: center;
+  }
+  .kx-consent input[type="checkbox"]:checked {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .kx-consent input[type="checkbox"]:checked::after {
+    content: "";
+    width: 10px; height: 6px;
+    border: 2px solid var(--accent);
+    border-top: 0; border-right: 0;
+    transform: translateY(-1px) rotate(-45deg);
+  }
+  .kx-consent a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+  .kx-submit-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; }
+  .kx-submit-row .meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-4); }
+
+  /* Success state */
+  .kx-success {
+    display: none;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: var(--r-md);
+    padding: 20px;
+    color: var(--accent-strong);
+    font-weight: 500;
+    align-items: start;
+    gap: 12px;
+    animation: pageIn .5s var(--ease-emph) both;
+  }
+  .kx-form-wrap.sent .kx-form { display: none; }
+  .kx-form-wrap.sent .kx-success { display: grid; grid-template-columns: 24px 1fr; }
+
+  /* Quick contact strip */
+  .kx-quick { padding: 64px 0; border-top: 1px solid var(--line); background: var(--bg); }
+  .kx-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .kx-quick-card {
+    padding: 32px;
+    border-left: 1px solid var(--line);
+    display: grid;
+    gap: 12px;
+  }
+  .kx-quick-card:first-child { border-left: 0; padding-left: 0; }
+  .kx-quick-card:last-child { padding-right: 0; }
+  .kx-quick-card .ic { width: 40px; height: 40px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); display: grid; place-items: center; }
+  .kx-quick-card .label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-4); }
+  .kx-quick-card .value { font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+  .kx-quick-card .hint { color: var(--ink-3); font-size: 14px; }
+
+  @media (max-width: 980px) {
+    .kx-grid { grid-template-columns: 1fr; gap: 56px; }
+    .kx-form-wrap { position: static; padding: 32px; }
+    .kx-row { grid-template-columns: 1fr; }
+    .kx-quick-grid { grid-template-columns: 1fr; }
+    .kx-quick-card { border-left: 0; border-top: 1px solid var(--line); padding: 24px 0; }
+    .kx-quick-card:first-child { border-top: 0; }
+  }
+</style>
+</head>
+<body data-screen-label="Kontakta oss">
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="lib/init-lang.js"></script>
+<script src="lib/cart-manager.js"></script>
+<script src="lib/topbar-scroll.js"></script>
+
+<script type="text/babel" src="components/icons.jsx"></script>
+<script type="text/babel" src="components/mini-cart.jsx"></script>
+<script type="text/babel" src="components/header.jsx"></script>
+<script type="text/babel" src="components/regsearch.jsx"></script>
+<script type="text/babel" src="components/tire.jsx"></script>
+<script type="text/babel" src="components/sections.jsx"></script>
+<script type="text/babel">
+  const { Footer, CTAStrip } = window.DCSections;
+  const { IconArrow, IconPin, IconPhone, IconMail, IconClock, IconCheck } = window.DCIcons;
+
+  function KontaktaOss() {
+    const [sent, setSent] = React.useState(false);
+    const [topic, setTopic] = React.useState("Boka tid");
+
+    function onSubmit(e) {
+      e.preventDefault();
+      setSent(true);
+      setTimeout(() => {
+        document.querySelector(".kx-form-wrap").scrollIntoView({behavior:"smooth", block:"nearest"});
+      }, 50);
+    }
+
+    return (
+      <>
+        <window.DCTopBar/>
+        <window.DCHeader activeIndex={-1}/>
+        <main>
+          <section className="kx-hero">
+            <div className="container">
+              <div className="crumbs"><a href="index.html">Hem</a><span className="sep">/</span><span style={{color:"var(--ink-2)"}}>Kontakta oss</span></div>
+              <span className="eyebrow" style={{marginTop:32, display:"inline-block"}}>Kontakt</span>
+              <h1>Kontakta <em>oss</em>.</h1>
+              <p className="lede">
+                Ring, mejla eller skicka formuläret nedan. Under öppettider svarar vi samma vardag — drop-in är alltid välkommet på Musköstgatan&nbsp;2.
+              </p>
+            </div>
+          </section>
+
+          <section className="kx-main">
+            <div className="container">
+              <div className="kx-grid">
+                {/* LEFT: info + map */}
+                <div className="kx-info">
+                  <div className="kx-block">
+                    <span className="eyebrow">Verkstad</span>
+                    <h3>Musköstgatan 2, Helsingborg</h3>
+                    <p>252 28 Helsingborg<br/>Drop-in välkommet · gott om parkering</p>
+                    <p style={{marginTop:12}}>
+                      <a href="https://maps.google.com/?q=Musköstgatan+2+Helsingborg" target="_blank" rel="noopener">Visa i Google Maps →</a>
+                    </p>
+                  </div>
+
+                  <div className="kx-block">
+                    <span className="eyebrow">Direktnummer</span>
+                    <h3>042-16 08 39</h3>
+                    <p>Reception och bokning. Snabbast svar mellan 07:30–17:00.</p>
+                    <p style={{marginTop:6}}><a href="mailto:info@dc.se">info@dc.se</a></p>
+                  </div>
+
+                  <div className="kx-block">
+                    <span className="eyebrow">Öppettider</span>
+                    <h3 style={{marginBottom:8}}>Året runt.</h3>
+                    <div className="kx-hours">
+                      <span className="day">Mån–Fre</span><span className="time">08–18</span>
+                      <span className="day">Lördag</span><span className="time">09–14</span>
+                      <span className="day">Söndag</span><span className="time closed">Stängt</span>
+                    </div>
+                    <p style={{marginTop:14, fontSize:13, color:"var(--ink-4)"}}>Tider kan avvika under röda dagar.</p>
+                  </div>
+
+                  <div className="kx-map" aria-label="Karta — Musköstgatan 2">
+                    <div className="grid-bg"></div>
+                    <div className="road r1"></div>
+                    <div className="road r2"></div>
+                    <div className="ripple"></div>
+                    <div className="pin"><IconPin size={18}/></div>
+                    <div className="label">Musköstgatan 2 · 252 28</div>
+                  </div>
+                </div>
+
+                {/* RIGHT: form */}
+                <div className={"kx-form-wrap" + (sent ? " sent" : "")}>
+                  <span className="eyebrow">Skicka meddelande</span>
+                  <h2>Vi <em style={{fontStyle:"italic", fontWeight:500, color:"var(--accent-strong)"}}>återkopplar</em> samma vardag.</h2>
+                  <p className="sub">Berätta vad du behöver — boka tid, fråga om däck, eller bara hör hur det funkar. Svar samma vardag.</p>
+
+                  <div className="kx-success" role="status">
+                    <span style={{width:24, height:24, borderRadius:"50%", background:"var(--accent-strong)", color:"#fff", display:"grid", placeItems:"center", flexShrink:0}}>
+                      <IconCheck size={14}/>
+                    </span>
+                    <div>
+                      <div style={{fontSize:16, marginBottom:4}}>Tack — meddelandet är skickat!</div>
+                      <div style={{color:"var(--ink-3)", fontSize:14, fontWeight:400}}>Vi hör av oss samma vardag (08–18). Brådskande? Ring 042-16&nbsp;08&nbsp;39.</div>
+                    </div>
+                  </div>
+
+                  <form className="kx-form" onSubmit={onSubmit} noValidate>
+                    <div className="kx-row">
+                      <div className="kx-field">
+                        <label htmlFor="kx-name">Namn <span className="req">*</span></label>
+                        <input className="kx-input" id="kx-name" name="name" type="text" required placeholder="Anna Lundgren"/>
+                      </div>
+                      <div className="kx-field">
+                        <label htmlFor="kx-phone">Telefon <span className="req">*</span></label>
+                        <input className="kx-input" id="kx-phone" name="phone" type="tel" required placeholder="070 — 123 45 67"/>
+                      </div>
+                    </div>
+
+                    <div className="kx-row">
+                      <div className="kx-field">
+                        <label htmlFor="kx-email">E-post</label>
+                        <input className="kx-input" id="kx-email" name="email" type="email" placeholder="anna@exempel.se"/>
+                      </div>
+                      <div className="kx-field">
+                        <label htmlFor="kx-reg">Registreringsnr.</label>
+                        <input className="kx-input" id="kx-reg" name="reg" type="text" placeholder="ABC 123" maxLength={7} style={{textTransform:"uppercase", letterSpacing:".06em", fontWeight:600}}/>
+                      </div>
+                    </div>
+
+                    <div className="kx-field">
+                      <label htmlFor="kx-topic">Vad gäller det?</label>
+                      <select className="kx-select" id="kx-topic" name="topic" value={topic} onChange={(e) => setTopic(e.target.value)}>
+                        <option>Boka tid</option>
+                        <option>Däckhotell — in/ut-lämning</option>
+                        <option>Köpa nya däck</option>
+                        <option>Köpa fälg</option>
+                        <option>Hjulinställning</option>
+                        <option>Punktering / akut</option>
+                        <option>Annat</option>
+                      </select>
+                    </div>
+
+                    <div className="kx-field">
+                      <label htmlFor="kx-msg">Meddelande <span className="req">*</span></label>
+                      <textarea className="kx-textarea" id="kx-msg" name="message" required placeholder="Skriv kort om bilen, vad du vill ha gjort och när du har möjlighet…"></textarea>
+                    </div>
+
+                    <label className="kx-consent">
+                      <input type="checkbox" required defaultChecked/>
+                      <span>Jag godkänner att Däckcentrum sparar mina uppgifter för att kunna återkoppla. Läs vår <a href="#">integritetspolicy</a>.</span>
+                    </label>
+
+                    <div className="kx-submit-row">
+                      <span className="meta">Svar samma vardag</span>
+                      <button type="submit" className="btn btn-accent">
+                        Skicka meddelande <span className="arrow"><IconArrow size={16}/></span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="kx-quick">
+            <div className="container">
+              <div className="kx-quick-grid">
+                <div className="kx-quick-card">
+                  <div className="ic"><IconPhone size={18}/></div>
+                  <div className="label">Ring direkt</div>
+                  <div className="value"><a href="tel:+4642160839" style={{color:"inherit"}}>042-16 08 39</a></div>
+                  <div className="hint">Mån–Fre 08–18 · Lördag 09–14</div>
+                </div>
+                <div className="kx-quick-card">
+                  <div className="ic"><IconMail size={18}/></div>
+                  <div className="label">Mejla</div>
+                  <div className="value"><a href="mailto:info@dc.se" style={{color:"inherit"}}>info@dc.se</a></div>
+                  <div className="hint">Vi svarar samma vardag</div>
+                </div>
+                <div className="kx-quick-card">
+                  <div className="ic"><IconClock size={18}/></div>
+                  <div className="label">Drop-in</div>
+                  <div className="value">Musköstgatan 2</div>
+                  <div className="hint">Punkterings­service utan tidsbokning, mån–fre 08–16</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <CTAStrip/>
+        </main>
+        <Footer/>
+      </>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<KontaktaOss/>);
+  setTimeout(() => {
+    const cartRoot = document.getElementById("mini-cart-root");
+    if (cartRoot) ReactDOM.createRoot(cartRoot).render(<DCMiniCart/>);
+  }, 250);
+</script>
+</body>
+</html>
