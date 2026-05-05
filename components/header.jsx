@@ -116,7 +116,7 @@ const NAV_SV = [
     { name: "Fälgrenovering", href: "tjanst-falgservice.html" },
     { name: "Däckhotell", href: "dackhotell.html" }
   ]},
-  { label: "DC Wheels" }
+  { label: "DC Wheels", href: "dc-wheels.html" }
 ];
 
 const NAV_EN = [
@@ -138,7 +138,7 @@ const NAV_EN = [
     { name: "Rim Service", href: "tjanst-falgservice.html" },
     { name: "Tyre Hotel", href: "dackhotell.html" }
   ]},
-  { label: "DC Wheels" }
+  { label: "DC Wheels", href: "dc-wheels.html" }
 ];
 
 function getNav() {
